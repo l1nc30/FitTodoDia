@@ -1,0 +1,634 @@
+<html>
+<head>
+<title>TreinoScreen.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+TreinoScreen.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">Application</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">LazyColumn</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">items</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">rememberScrollState</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">verticalScroll</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">platform</span><span class="s2">.</span><span class="s1">LocalContext</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">unit</span><span class="s2">.</span><span class="s1">dp</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">AndroidViewModel</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewModelScope</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewmodel</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">viewModel</span>
+<span class="s1">import coil</span><span class="s2">.</span><span class="s1">ImageLoader</span>
+<span class="s1">import coil</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">AsyncImage</span>
+<span class="s1">import coil</span><span class="s2">.</span><span class="s1">decode</span><span class="s2">.</span><span class="s1">GifDecoder</span>
+<span class="s1">import coil</span><span class="s2">.</span><span class="s1">decode</span><span class="s2">.</span><span class="s1">ImageDecoderDecoder</span>
+<span class="s1">import coil</span><span class="s2">.</span><span class="s1">request</span><span class="s2">.</span><span class="s1">ImageRequest</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">AppDatabase</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span><span class="s2">.</span><span class="s1">WorkoutExerciseRow</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">WorkoutSessionEntity</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">WorkoutSessionExerciseEntity</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">repo</span><span class="s2">.</span><span class="s1">WeekDayRepository</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">Job</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">delay</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">Flow</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">SharingStarted</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">StateFlow</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">distinctUntilChanged</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">flatMapLatest</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">flowOf</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">map</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">stateIn</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">launch</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">text</span><span class="s2">.</span><span class="s1">Normalizer</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">DayOfWeek</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">LocalDate</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">ZoneId</span>
+<span class="s1">import kotlin</span><span class="s2">.</span><span class="s1">math</span><span class="s2">.</span><span class="s1">max</span>
+
+<span class="s1">enum </span><span class="s0">class </span><span class="s1">TreinoMode </span><span class="s2">{ </span><span class="s1">Overview</span><span class="s2">, </span><span class="s1">Focus </span><span class="s2">}</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">RestTimerState</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">initialSeconds: Int </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">remainingSeconds: Int </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">running: Boolean </span><span class="s2">= </span><span class="s0">false</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">finished: Boolean </span><span class="s2">= </span><span class="s0">false</span>
+<span class="s2">)</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">TreinoUiState</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">dayId: Int </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">dayLabel: String </span><span class="s2">= </span><span class="s4">&quot;&quot;</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">hasWorkout: Boolean </span><span class="s2">= </span><span class="s0">false</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">workoutId: Long </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">workoutName: String </span><span class="s2">= </span><span class="s4">&quot;&quot;</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">rows: List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt; = </span><span class="s1">emptyList</span><span class="s2">()</span>
+<span class="s2">)</span>
+
+<span class="s1">private data </span><span class="s0">class </span><span class="s1">SelectedDay</span><span class="s2">(</span><span class="s0">val </span><span class="s1">id: Int</span><span class="s2">, </span><span class="s0">val </span><span class="s1">label: String</span><span class="s2">)</span>
+
+<span class="s0">class </span><span class="s1">TreinoViewModel</span><span class="s2">(</span><span class="s1">app: Application</span><span class="s2">) </span><span class="s1">: AndroidViewModel</span><span class="s2">(</span><span class="s1">app</span><span class="s2">) {</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">db </span><span class="s2">= </span><span class="s1">AppDatabase</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">app</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">weekRepo </span><span class="s2">= </span><span class="s1">WeekDayRepository</span><span class="s2">(</span><span class="s1">db</span><span class="s2">.</span><span class="s1">weekDayDao</span><span class="s2">())</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">zone </span><span class="s2">= </span><span class="s1">ZoneId</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s4">&quot;America/Sao_Paulo&quot;</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">today </span><span class="s2">= </span><span class="s1">LocalDate</span><span class="s2">.</span><span class="s1">now</span><span class="s2">(</span><span class="s1">zone</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">todayDow: DayOfWeek </span><span class="s2">= </span><span class="s1">today</span><span class="s2">.</span><span class="s1">dayOfWeek</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">todayKey: String </span><span class="s2">= </span><span class="s1">baseKeyForDayOfWeek</span><span class="s2">(</span><span class="s1">todayDow</span><span class="s2">)</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">_mode </span><span class="s2">= </span><span class="s1">MutableStateFlow</span><span class="s2">(</span><span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Overview</span><span class="s2">)</span>
+    <span class="s0">val </span><span class="s1">mode: StateFlow</span><span class="s2">&lt;</span><span class="s1">TreinoMode</span><span class="s2">&gt; = </span><span class="s1">_mode</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">_focusIndex </span><span class="s2">= </span><span class="s1">MutableStateFlow</span><span class="s2">(</span><span class="s3">0</span><span class="s2">)</span>
+    <span class="s0">val </span><span class="s1">focusIndex: StateFlow</span><span class="s2">&lt;</span><span class="s1">Int</span><span class="s2">&gt; = </span><span class="s1">_focusIndex</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">_completedSets </span><span class="s2">= </span><span class="s1">MutableStateFlow</span><span class="s2">&lt;</span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt;&gt;&gt;(</span><span class="s1">emptyMap</span><span class="s2">())</span>
+    <span class="s0">val </span><span class="s1">completedSets: StateFlow</span><span class="s2">&lt;</span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt;&gt;&gt; = </span><span class="s1">_completedSets</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">_restTimer </span><span class="s2">= </span><span class="s1">MutableStateFlow</span><span class="s2">(</span><span class="s1">RestTimerState</span><span class="s2">())</span>
+    <span class="s0">val </span><span class="s1">restTimer: StateFlow</span><span class="s2">&lt;</span><span class="s1">RestTimerState</span><span class="s2">&gt; = </span><span class="s1">_restTimer</span>
+
+    <span class="s1">private </span><span class="s0">var </span><span class="s1">tickJob: Job? </span><span class="s2">= </span><span class="s0">null</span>
+    <span class="s1">private </span><span class="s0">var </span><span class="s1">sessionStartEpochMs: Long? </span><span class="s2">= </span><span class="s0">null</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">selectedDayFlow: Flow</span><span class="s2">&lt;</span><span class="s1">SelectedDay</span><span class="s2">&gt; =</span>
+        <span class="s1">weekRepo</span><span class="s2">.</span><span class="s1">observeDaysWithWorkout</span><span class="s2">()</span>
+            <span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">list </span><span class="s2">-&gt;</span>
+                <span class="s0">val </span><span class="s1">match </span><span class="s2">= </span><span class="s1">list</span><span class="s2">.</span><span class="s1">firstOrNull </span><span class="s2">{ </span><span class="s1">normalizeDayName</span><span class="s2">(</span><span class="s1">it</span><span class="s2">.</span><span class="s1">dayName</span><span class="s2">) == </span><span class="s1">todayKey </span><span class="s2">}</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">match </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) </span><span class="s1">SelectedDay</span><span class="s2">(</span><span class="s1">id </span><span class="s2">= </span><span class="s1">match</span><span class="s2">.</span><span class="s1">dayId</span><span class="s2">, </span><span class="s1">label </span><span class="s2">= </span><span class="s1">match</span><span class="s2">.</span><span class="s1">dayName</span><span class="s2">)</span>
+                <span class="s0">else </span><span class="s1">SelectedDay</span><span class="s2">(</span><span class="s1">id </span><span class="s2">= </span><span class="s3">1</span><span class="s2">, </span><span class="s1">label </span><span class="s2">= </span><span class="s1">labelForDayOfWeek</span><span class="s2">(</span><span class="s1">todayDow</span><span class="s2">))</span>
+            <span class="s2">}</span>
+            <span class="s2">.</span><span class="s1">distinctUntilChanged</span><span class="s2">()</span>
+
+    <span class="s0">val </span><span class="s1">uiState: StateFlow</span><span class="s2">&lt;</span><span class="s1">TreinoUiState</span><span class="s2">&gt; =</span>
+        <span class="s1">selectedDayFlow</span>
+            <span class="s2">.</span><span class="s1">flatMapLatest </span><span class="s2">{ </span><span class="s1">sel </span><span class="s2">-&gt;</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">workoutDao</span><span class="s2">().</span><span class="s1">observeWorkoutByDay</span><span class="s2">(</span><span class="s1">sel</span><span class="s2">.</span><span class="s1">id</span><span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">flatMapLatest </span><span class="s2">{ </span><span class="s1">workout </span><span class="s2">-&gt;</span>
+                        <span class="s0">if </span><span class="s2">(</span><span class="s1">workout </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+                            <span class="s1">flowOf</span><span class="s2">(</span>
+                                <span class="s1">TreinoUiState</span><span class="s2">(</span>
+                                    <span class="s1">dayId </span><span class="s2">= </span><span class="s1">sel</span><span class="s2">.</span><span class="s1">id</span><span class="s2">,</span>
+                                    <span class="s1">dayLabel </span><span class="s2">= </span><span class="s1">sel</span><span class="s2">.</span><span class="s1">label</span><span class="s2">,</span>
+                                    <span class="s1">hasWorkout </span><span class="s2">= </span><span class="s0">false</span><span class="s2">,</span>
+                                    <span class="s1">workoutId </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+                                    <span class="s1">workoutName </span><span class="s2">= </span><span class="s4">&quot;&quot;</span><span class="s2">,</span>
+                                    <span class="s1">rows </span><span class="s2">= </span><span class="s1">emptyList</span><span class="s2">()</span>
+                                <span class="s2">)</span>
+                            <span class="s2">)</span>
+                        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                            <span class="s1">db</span><span class="s2">.</span><span class="s1">workoutExerciseDao</span><span class="s2">().</span><span class="s1">observeRowsByWorkout</span><span class="s2">(</span><span class="s1">workout</span><span class="s2">.</span><span class="s1">id</span><span class="s2">)</span>
+                                <span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">rows </span><span class="s2">-&gt;</span>
+                                    <span class="s1">TreinoUiState</span><span class="s2">(</span>
+                                        <span class="s1">dayId </span><span class="s2">= </span><span class="s1">sel</span><span class="s2">.</span><span class="s1">id</span><span class="s2">,</span>
+                                        <span class="s1">dayLabel </span><span class="s2">= </span><span class="s1">sel</span><span class="s2">.</span><span class="s1">label</span><span class="s2">,</span>
+                                        <span class="s1">hasWorkout </span><span class="s2">= </span><span class="s0">true</span><span class="s2">,</span>
+                                        <span class="s1">workoutId </span><span class="s2">= </span><span class="s1">workout</span><span class="s2">.</span><span class="s1">id</span><span class="s2">,</span>
+                                        <span class="s1">workoutName </span><span class="s2">= </span><span class="s1">workout</span><span class="s2">.</span><span class="s1">name</span><span class="s2">,</span>
+                                        <span class="s1">rows </span><span class="s2">= </span><span class="s1">rows</span>
+                                    <span class="s2">)</span>
+                                <span class="s2">}</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s2">.</span><span class="s1">stateIn</span><span class="s2">(</span>
+                <span class="s1">viewModelScope</span><span class="s2">,</span>
+                <span class="s1">SharingStarted</span><span class="s2">.</span><span class="s1">WhileSubscribed</span><span class="s2">(</span><span class="s3">5_000</span><span class="s2">),</span>
+                <span class="s1">TreinoUiState</span><span class="s2">(</span><span class="s1">dayId </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">dayLabel </span><span class="s2">= </span><span class="s1">labelForDayOfWeek</span><span class="s2">(</span><span class="s1">todayDow</span><span class="s2">))</span>
+            <span class="s2">)</span>
+
+    <span class="s0">fun </span><span class="s1">startWorkout</span><span class="s2">(</span><span class="s1">rows: List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt;) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) </span><span class="s0">return</span>
+        <span class="s1">_mode</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Focus</span>
+        <span class="s1">_focusIndex</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s3">0</span>
+        <span class="s1">sessionStartEpochMs </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">()</span>
+
+        <span class="s1">_completedSets</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">associate </span><span class="s2">{ </span><span class="s1">row </span><span class="s2">-&gt;</span>
+            <span class="s1">row</span><span class="s2">.</span><span class="s1">id to List</span><span class="s2">(</span><span class="s1">row</span><span class="s2">.</span><span class="s1">sets</span><span class="s2">.</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">1</span><span class="s2">)) { </span><span class="s0">false </span><span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s1">resetRestTimer</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">backToOverview</span><span class="s2">() {</span>
+        <span class="s1">_mode</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Overview</span>
+        <span class="s1">resetRestTimer</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">goPrev</span><span class="s2">(</span><span class="s1">total: Int</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">cur </span><span class="s2">= </span><span class="s1">_focusIndex</span><span class="s2">.</span><span class="s1">value</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">cur </span><span class="s2">&gt; </span><span class="s3">0</span><span class="s2">) {</span>
+            <span class="s1">_focusIndex</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">cur </span><span class="s2">- </span><span class="s3">1</span>
+            <span class="s1">resetRestTimer</span><span class="s2">()</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">goNext</span><span class="s2">(</span><span class="s1">total: Int</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">cur </span><span class="s2">= </span><span class="s1">_focusIndex</span><span class="s2">.</span><span class="s1">value</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">cur </span><span class="s2">&lt; </span><span class="s1">total </span><span class="s2">- </span><span class="s3">1</span><span class="s2">) {</span>
+            <span class="s1">_focusIndex</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">cur </span><span class="s2">+ </span><span class="s3">1</span>
+            <span class="s1">resetRestTimer</span><span class="s2">()</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">toggleSet</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">, </span><span class="s1">setIndex: Int</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">current </span><span class="s2">= </span><span class="s1">_completedSets</span><span class="s2">.</span><span class="s1">value</span><span class="s2">.</span><span class="s1">toMutableMap</span><span class="s2">()</span>
+        <span class="s0">val </span><span class="s1">list </span><span class="s2">= </span><span class="s1">current</span><span class="s2">[</span><span class="s1">rowId</span><span class="s2">]</span><span class="s1">?</span><span class="s2">.</span><span class="s1">toMutableList</span><span class="s2">() </span><span class="s1">?: </span><span class="s0">return</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">setIndex </span><span class="s0">!in </span><span class="s1">list</span><span class="s2">.</span><span class="s1">indices</span><span class="s2">) </span><span class="s0">return</span>
+        <span class="s1">list</span><span class="s2">[</span><span class="s1">setIndex</span><span class="s2">] = !</span><span class="s1">list</span><span class="s2">[</span><span class="s1">setIndex</span><span class="s2">]</span>
+        <span class="s1">current</span><span class="s2">[</span><span class="s1">rowId</span><span class="s2">] = </span><span class="s1">list</span>
+        <span class="s1">_completedSets</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">current</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">finishWorkout</span><span class="s2">(</span>
+        <span class="s1">dayId: Int</span><span class="s2">,</span>
+        <span class="s1">workoutId: Long</span><span class="s2">,</span>
+        <span class="s1">workoutName: String</span><span class="s2">,</span>
+        <span class="s1">rows: List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt;,</span>
+        <span class="s1">onSuccess: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+        <span class="s1">onError: </span><span class="s2">(</span><span class="s1">String</span><span class="s2">) -&gt; </span><span class="s1">Unit</span>
+    <span class="s2">) {</span>
+        <span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s0">try </span><span class="s2">{</span>
+                <span class="s0">val </span><span class="s1">started </span><span class="s2">= </span><span class="s1">sessionStartEpochMs ?: System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">()</span>
+                <span class="s0">val </span><span class="s1">now </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">()</span>
+                <span class="s0">val </span><span class="s1">durationSeconds </span><span class="s2">= ((</span><span class="s1">now </span><span class="s2">- </span><span class="s1">started</span><span class="s2">) / </span><span class="s3">1000L</span><span class="s2">).</span><span class="s1">toInt</span><span class="s2">().</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">0</span><span class="s2">)</span>
+                <span class="s0">val </span><span class="s1">dateEpochDay </span><span class="s2">= </span><span class="s1">LocalDate</span><span class="s2">.</span><span class="s1">now</span><span class="s2">(</span><span class="s1">zone</span><span class="s2">).</span><span class="s1">toEpochDay</span><span class="s2">()</span>
+
+                <span class="s0">val </span><span class="s1">totalExercises </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size</span>
+                <span class="s0">val </span><span class="s1">totalSetsPlanned </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">sumOf </span><span class="s2">{ </span><span class="s1">it</span><span class="s2">.</span><span class="s1">sets</span><span class="s2">.</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">0</span><span class="s2">) }</span>
+                <span class="s0">val </span><span class="s1">totalSetsDone </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">sumOf </span><span class="s2">{ </span><span class="s1">r </span><span class="s2">-&gt;</span>
+                    <span class="s2">(</span><span class="s1">_completedSets</span><span class="s2">.</span><span class="s1">value</span><span class="s2">[</span><span class="s1">r</span><span class="s2">.</span><span class="s1">id</span><span class="s2">]</span><span class="s1">?</span><span class="s2">.</span><span class="s1">count </span><span class="s2">{ </span><span class="s1">it </span><span class="s2">} </span><span class="s1">?: </span><span class="s3">0</span><span class="s2">)</span>
+                <span class="s2">}</span>
+
+                <span class="s0">val </span><span class="s1">sessionId </span><span class="s2">= </span><span class="s1">db</span><span class="s2">.</span><span class="s1">workoutSessionDao</span><span class="s2">().</span><span class="s1">insertSession</span><span class="s2">(</span>
+                    <span class="s1">WorkoutSessionEntity</span><span class="s2">(</span>
+                        <span class="s1">workoutId </span><span class="s2">= </span><span class="s1">workoutId</span><span class="s2">,</span>
+                        <span class="s1">weekDayId </span><span class="s2">= </span><span class="s1">dayId</span><span class="s2">,</span>
+                        <span class="s1">dateEpochDay </span><span class="s2">= </span><span class="s1">dateEpochDay</span><span class="s2">,</span>
+                        <span class="s1">startedAtEpochMs </span><span class="s2">= </span><span class="s1">started</span><span class="s2">,</span>
+                        <span class="s1">durationSeconds </span><span class="s2">= </span><span class="s1">durationSeconds</span><span class="s2">,</span>
+                        <span class="s1">workoutNameSnapshot </span><span class="s2">= </span><span class="s1">workoutName</span><span class="s2">,</span>
+                        <span class="s1">totalExercises </span><span class="s2">= </span><span class="s1">totalExercises</span><span class="s2">,</span>
+                        <span class="s1">totalSetsPlanned </span><span class="s2">= </span><span class="s1">totalSetsPlanned</span><span class="s2">,</span>
+                        <span class="s1">totalSetsDone </span><span class="s2">= </span><span class="s1">totalSetsDone</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">items </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">mapIndexed </span><span class="s2">{ </span><span class="s1">idx</span><span class="s2">, </span><span class="s1">r </span><span class="s2">-&gt;</span>
+                    <span class="s0">val </span><span class="s1">done </span><span class="s2">= (</span><span class="s1">_completedSets</span><span class="s2">.</span><span class="s1">value</span><span class="s2">[</span><span class="s1">r</span><span class="s2">.</span><span class="s1">id</span><span class="s2">]</span><span class="s1">?</span><span class="s2">.</span><span class="s1">count </span><span class="s2">{ </span><span class="s1">it </span><span class="s2">} </span><span class="s1">?: </span><span class="s3">0</span><span class="s2">)</span>
+                    <span class="s1">WorkoutSessionExerciseEntity</span><span class="s2">(</span>
+                        <span class="s1">sessionId </span><span class="s2">= </span><span class="s1">sessionId</span><span class="s2">,</span>
+                        <span class="s1">orderIndex </span><span class="s2">= </span><span class="s1">idx</span><span class="s2">,</span>
+                        <span class="s1">exerciseNameSnapshot </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">exerciseName</span><span class="s2">,</span>
+                        <span class="s1">muscleGroupSnapshot </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">muscleGroup</span><span class="s2">,</span>
+                        <span class="s1">setsPlanned </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">sets</span><span class="s2">,</span>
+                        <span class="s1">setsDone </span><span class="s2">= </span><span class="s1">done</span><span class="s2">,</span>
+                        <span class="s1">repsSnapshot </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">reps</span><span class="s2">,</span>
+                        <span class="s1">restSecondsSnapshot </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">restSeconds</span>
+                    <span class="s2">)</span>
+                <span class="s2">}</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">workoutSessionDao</span><span class="s2">().</span><span class="s1">insertExercises</span><span class="s2">(</span><span class="s1">items</span><span class="s2">)</span>
+
+                <span class="s5">// reset de sessão</span>
+                <span class="s1">sessionStartEpochMs </span><span class="s2">= </span><span class="s0">null</span>
+                <span class="s1">resetRestTimer</span><span class="s2">()</span>
+                <span class="s1">_mode</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Overview</span>
+
+                <span class="s1">onSuccess</span><span class="s2">()</span>
+            <span class="s2">} </span><span class="s1">catch </span><span class="s2">(</span><span class="s1">t: Throwable</span><span class="s2">) {</span>
+                <span class="s1">onError</span><span class="s2">(</span><span class="s4">&quot;Falha ao salvar histórico: </span><span class="s0">${</span><span class="s1">t</span><span class="s2">.</span><span class="s1">message ?: </span><span class="s4">&quot;erro desconhecido&quot;</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s5">// -------- Timer descanso --------</span>
+    <span class="s0">fun </span><span class="s1">startRest</span><span class="s2">(</span><span class="s1">defaultSeconds: Int</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">seconds </span><span class="s2">= </span><span class="s1">max</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s1">defaultSeconds</span><span class="s2">)</span>
+        <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">RestTimerState</span><span class="s2">(</span>
+            <span class="s1">initialSeconds </span><span class="s2">= </span><span class="s1">seconds</span><span class="s2">,</span>
+            <span class="s1">remainingSeconds </span><span class="s2">= </span><span class="s1">seconds</span><span class="s2">,</span>
+            <span class="s1">running </span><span class="s2">= </span><span class="s0">true</span><span class="s2">,</span>
+            <span class="s1">finished </span><span class="s2">= </span><span class="s0">false</span>
+        <span class="s2">)</span>
+        <span class="s1">startTicking</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">togglePauseRest</span><span class="s2">() {</span>
+        <span class="s0">val </span><span class="s1">cur </span><span class="s2">= </span><span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">cur</span><span class="s2">.</span><span class="s1">initialSeconds </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) </span><span class="s0">return</span>
+
+        <span class="s0">val </span><span class="s1">nowRunning </span><span class="s2">= !</span><span class="s1">cur</span><span class="s2">.</span><span class="s1">running</span>
+        <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">cur</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">running </span><span class="s2">= </span><span class="s1">nowRunning</span><span class="s2">, </span><span class="s1">finished </span><span class="s2">= </span><span class="s0">false</span><span class="s2">)</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">nowRunning</span><span class="s2">) </span><span class="s1">startTicking</span><span class="s2">() </span><span class="s0">else </span><span class="s1">stopTicking</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">resetRestTimer</span><span class="s2">() {</span>
+        <span class="s1">stopTicking</span><span class="s2">()</span>
+        <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">RestTimerState</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">zeroRestTimer</span><span class="s2">() {</span>
+        <span class="s1">stopTicking</span><span class="s2">()</span>
+        <span class="s0">val </span><span class="s1">cur </span><span class="s2">= </span><span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value</span>
+        <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">=</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">cur</span><span class="s2">.</span><span class="s1">initialSeconds </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) </span><span class="s1">RestTimerState</span><span class="s2">()</span>
+            <span class="s0">else </span><span class="s1">cur</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">remainingSeconds </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">running </span><span class="s2">= </span><span class="s0">false</span><span class="s2">, </span><span class="s1">finished </span><span class="s2">= </span><span class="s0">true</span><span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">startTicking</span><span class="s2">() {</span>
+        <span class="s1">stopTicking</span><span class="s2">()</span>
+        <span class="s1">tickJob </span><span class="s2">= </span><span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s0">true</span><span class="s2">) {</span>
+                <span class="s0">val </span><span class="s1">cur </span><span class="s2">= </span><span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value</span>
+                <span class="s0">if </span><span class="s2">(!</span><span class="s1">cur</span><span class="s2">.</span><span class="s1">running</span><span class="s2">) </span><span class="s0">break</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">cur</span><span class="s2">.</span><span class="s1">remainingSeconds </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) </span><span class="s0">break</span>
+
+                <span class="s1">delay</span><span class="s2">(</span><span class="s3">1000</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">after </span><span class="s2">= </span><span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value</span>
+                <span class="s0">if </span><span class="s2">(!</span><span class="s1">after</span><span class="s2">.</span><span class="s1">running</span><span class="s2">) </span><span class="s0">break</span>
+
+                <span class="s0">val </span><span class="s1">next </span><span class="s2">= </span><span class="s1">after</span><span class="s2">.</span><span class="s1">remainingSeconds </span><span class="s2">- </span><span class="s3">1</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">next </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) {</span>
+                    <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">after</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">remainingSeconds </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">running </span><span class="s2">= </span><span class="s0">false</span><span class="s2">, </span><span class="s1">finished </span><span class="s2">= </span><span class="s0">true</span><span class="s2">)</span>
+                    <span class="s0">break</span>
+                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                    <span class="s1">_restTimer</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">after</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">remainingSeconds </span><span class="s2">= </span><span class="s1">next</span><span class="s2">, </span><span class="s1">finished </span><span class="s2">= </span><span class="s0">false</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">stopTicking</span><span class="s2">() {</span>
+        <span class="s1">tickJob?</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">()</span>
+        <span class="s1">tickJob </span><span class="s2">= </span><span class="s0">null</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">rememberGifImageLoader</span><span class="s2">()</span><span class="s1">: ImageLoader </span><span class="s2">{</span>
+    <span class="s0">val </span><span class="s1">context </span><span class="s2">= </span><span class="s1">LocalContext</span><span class="s2">.</span><span class="s1">current</span>
+    <span class="s0">return </span><span class="s1">remember </span><span class="s2">{</span>
+        <span class="s1">ImageLoader</span><span class="s2">.</span><span class="s1">Builder</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">components </span><span class="s2">{</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s3">28</span><span class="s2">) {</span>
+                    <span class="s1">add</span><span class="s2">(</span><span class="s1">ImageDecoderDecoder</span><span class="s2">.</span><span class="s1">Factory</span><span class="s2">())</span>
+                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                    <span class="s1">add</span><span class="s2">(</span><span class="s1">GifDecoder</span><span class="s2">.</span><span class="s1">Factory</span><span class="s2">())</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s2">.</span><span class="s1">build</span><span class="s2">()</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">TreinoScreen</span><span class="s2">(</span>
+    <span class="s1">onNavigateToProgress: </span><span class="s2">() -&gt; </span><span class="s1">Unit </span><span class="s2">= {}</span>
+<span class="s2">) {</span>
+    <span class="s0">val </span><span class="s1">vm: TreinoViewModel </span><span class="s2">= </span><span class="s1">viewModel</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">state by vm</span><span class="s2">.</span><span class="s1">uiState</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">mode by vm</span><span class="s2">.</span><span class="s1">mode</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">focusIndex by vm</span><span class="s2">.</span><span class="s1">focusIndex</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">completed by vm</span><span class="s2">.</span><span class="s1">completedSets</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">timer by vm</span><span class="s2">.</span><span class="s1">restTimer</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+
+    <span class="s0">var </span><span class="s1">showFinishDialog by remember </span><span class="s2">{ </span><span class="s1">mutableStateOf</span><span class="s2">(</span><span class="s0">false</span><span class="s2">) }</span>
+    <span class="s0">var </span><span class="s1">message by remember </span><span class="s2">{ </span><span class="s1">mutableStateOf</span><span class="s2">&lt;</span><span class="s1">String?</span><span class="s2">&gt;(</span><span class="s0">null</span><span class="s2">) }</span>
+
+    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxSize</span><span class="s2">().</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">16</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Treino de hoje&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">dayLabel</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">state</span><span class="s2">.</span><span class="s1">hasWorkout</span><span class="s2">) {</span>
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Nenhum treino cadastrado para hoje.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Vá na Agenda, selecione o dia e adicione exercícios.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s0">return</span>
+        <span class="s2">}</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">message </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s1">message</span><span class="s2">!!, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s2">}</span>
+
+        <span class="s0">when </span><span class="s2">(</span><span class="s1">mode</span><span class="s2">) {</span>
+            <span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Overview </span><span class="s2">-&gt; </span><span class="s1">OverviewView</span><span class="s2">(</span>
+                <span class="s1">workoutName </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">workoutName</span><span class="s2">,</span>
+                <span class="s1">rows </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">,</span>
+                <span class="s1">onStart </span><span class="s2">= {</span>
+                    <span class="s1">message </span><span class="s2">= </span><span class="s0">null</span>
+                    <span class="s1">vm</span><span class="s2">.</span><span class="s1">startWorkout</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">)</span>
+
+            <span class="s1">TreinoMode</span><span class="s2">.</span><span class="s1">Focus </span><span class="s2">-&gt; </span><span class="s1">FocusView</span><span class="s2">(</span>
+                <span class="s1">workoutName </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">workoutName</span><span class="s2">,</span>
+                <span class="s1">rows </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">,</span>
+                <span class="s1">focusIndex </span><span class="s2">= </span><span class="s1">focusIndex</span><span class="s2">.</span><span class="s1">coerceIn</span><span class="s2">(</span><span class="s3">0</span><span class="s2">, (</span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size </span><span class="s2">- </span><span class="s3">1</span><span class="s2">).</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">0</span><span class="s2">)),</span>
+                <span class="s1">completedSets </span><span class="s2">= </span><span class="s1">completed</span><span class="s2">,</span>
+                <span class="s1">timer </span><span class="s2">= </span><span class="s1">timer</span><span class="s2">,</span>
+                <span class="s1">onBackToList </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">backToOverview</span><span class="s2">() },</span>
+                <span class="s1">onToggleSet </span><span class="s2">= { </span><span class="s1">rowId</span><span class="s2">, </span><span class="s1">setIdx </span><span class="s2">-&gt; </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">toggleSet</span><span class="s2">(</span><span class="s1">rowId</span><span class="s2">, </span><span class="s1">setIdx</span><span class="s2">) },</span>
+                <span class="s1">onPrev </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">goPrev</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size</span><span class="s2">) },</span>
+                <span class="s1">onNext </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">goNext</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size</span><span class="s2">) },</span>
+                <span class="s1">onStartRest </span><span class="s2">= { </span><span class="s1">seconds </span><span class="s2">-&gt; </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">startRest</span><span class="s2">(</span><span class="s1">seconds</span><span class="s2">) },</span>
+                <span class="s1">onPauseResume </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">togglePauseRest</span><span class="s2">() },</span>
+                <span class="s1">onResetRest </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">resetRestTimer</span><span class="s2">() },</span>
+                <span class="s1">onZeroRest </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">zeroRestTimer</span><span class="s2">() },</span>
+                <span class="s1">onFinish </span><span class="s2">= { </span><span class="s1">showFinishDialog </span><span class="s2">= </span><span class="s0">true </span><span class="s2">}</span>
+            <span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">if </span><span class="s2">(</span><span class="s1">showFinishDialog</span><span class="s2">) {</span>
+        <span class="s1">AlertDialog</span><span class="s2">(</span>
+            <span class="s1">onDismissRequest </span><span class="s2">= { </span><span class="s1">showFinishDialog </span><span class="s2">= </span><span class="s0">false </span><span class="s2">},</span>
+            <span class="s1">confirmButton </span><span class="s2">= {</span>
+                <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= {</span>
+                    <span class="s1">showFinishDialog </span><span class="s2">= </span><span class="s0">false</span>
+                    <span class="s1">vm</span><span class="s2">.</span><span class="s1">finishWorkout</span><span class="s2">(</span>
+                        <span class="s1">dayId </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">dayId</span><span class="s2">,</span>
+                        <span class="s1">workoutId </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">workoutId</span><span class="s2">,</span>
+                        <span class="s1">workoutName </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">workoutName</span><span class="s2">,</span>
+                        <span class="s1">rows </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">rows</span><span class="s2">,</span>
+                        <span class="s1">onSuccess </span><span class="s2">= {</span>
+                            <span class="s1">message </span><span class="s2">= </span><span class="s0">null</span>
+                            <span class="s5">// ✅ vai para Progresso</span>
+                            <span class="s1">onNavigateToProgress</span><span class="s2">()</span>
+                        <span class="s2">},</span>
+                        <span class="s1">onError </span><span class="s2">= { </span><span class="s1">msg </span><span class="s2">-&gt; </span><span class="s1">message </span><span class="s2">= </span><span class="s1">msg </span><span class="s2">}</span>
+                    <span class="s2">)</span>
+                <span class="s2">}) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Finalizar e salvar&quot;</span><span class="s2">) }</span>
+            <span class="s2">},</span>
+            <span class="s1">dismissButton </span><span class="s2">= {</span>
+                <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= { </span><span class="s1">showFinishDialog </span><span class="s2">= </span><span class="s0">false </span><span class="s2">}) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Cancelar&quot;</span><span class="s2">) }</span>
+            <span class="s2">},</span>
+            <span class="s1">title </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Finalizar treino&quot;</span><span class="s2">) },</span>
+            <span class="s1">text </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Deseja salvar este treino no histórico e concluir o dia?&quot;</span><span class="s2">) }</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">OverviewView</span><span class="s2">(</span>
+    <span class="s1">workoutName: String</span><span class="s2">,</span>
+    <span class="s1">rows: List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt;,</span>
+    <span class="s1">onStart: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span>
+<span class="s2">) {</span>
+    <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+        <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s1">workoutName</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Exercícios: </span><span class="s0">${</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onStart</span><span class="s2">, </span><span class="s1">enabled </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">isNotEmpty</span><span class="s2">(), </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Iniciar treino&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Exercícios do dia&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+    <span class="s1">LazyColumn</span><span class="s2">(</span><span class="s1">verticalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">items</span><span class="s2">(</span><span class="s1">rows</span><span class="s2">, </span><span class="s1">key </span><span class="s2">= { </span><span class="s1">it</span><span class="s2">.</span><span class="s1">id </span><span class="s2">}) { </span><span class="s1">r </span><span class="s2">-&gt;</span>
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s1">r</span><span class="s2">.</span><span class="s1">exerciseName</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                    <span class="s0">val </span><span class="s1">rest </span><span class="s2">= </span><span class="s1">r</span><span class="s2">.</span><span class="s1">restSeconds?</span><span class="s2">.</span><span class="s1">let </span><span class="s2">{ </span><span class="s4">&quot; • Descanso </span><span class="s0">${</span><span class="s1">it</span><span class="s0">}</span><span class="s4">s&quot; </span><span class="s2">} </span><span class="s1">?: </span><span class="s4">&quot;&quot;</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">${</span><span class="s1">r</span><span class="s2">.</span><span class="s1">sets</span><span class="s0">}</span><span class="s4">x</span><span class="s0">${</span><span class="s1">r</span><span class="s2">.</span><span class="s1">reps</span><span class="s0">}$</span><span class="s1">rest</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">FocusView</span><span class="s2">(</span>
+    <span class="s1">workoutName: String</span><span class="s2">,</span>
+    <span class="s1">rows: List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt;,</span>
+    <span class="s1">focusIndex: Int</span><span class="s2">,</span>
+    <span class="s1">completedSets: Map</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt;&gt;,</span>
+    <span class="s1">timer: RestTimerState</span><span class="s2">,</span>
+    <span class="s1">onBackToList: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onToggleSet: </span><span class="s2">(</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">Int</span><span class="s2">) -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onPrev: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onNext: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onStartRest: </span><span class="s2">(</span><span class="s1">Int</span><span class="s2">) -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onPauseResume: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onResetRest: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onZeroRest: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onFinish: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span>
+<span class="s2">) {</span>
+    <span class="s0">if </span><span class="s2">(</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Sem exercícios para executar.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+        <span class="s0">return</span>
+    <span class="s2">}</span>
+
+    <span class="s0">val </span><span class="s1">current </span><span class="s2">= </span><span class="s1">rows</span><span class="s2">[</span><span class="s1">focusIndex</span><span class="s2">]</span>
+    <span class="s0">val </span><span class="s1">doneList </span><span class="s2">= </span><span class="s1">completedSets</span><span class="s2">[</span><span class="s1">current</span><span class="s2">.</span><span class="s1">id</span><span class="s2">] </span><span class="s1">?: List</span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">sets</span><span class="s2">.</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">1</span><span class="s2">)) { </span><span class="s0">false </span><span class="s2">}</span>
+    <span class="s0">val </span><span class="s1">doneCount </span><span class="s2">= </span><span class="s1">doneList</span><span class="s2">.</span><span class="s1">count </span><span class="s2">{ </span><span class="s1">it </span><span class="s2">}</span>
+    <span class="s0">val </span><span class="s1">suggestedRest </span><span class="s2">= </span><span class="s1">current</span><span class="s2">.</span><span class="s1">restSeconds ?: </span><span class="s3">60</span>
+
+    <span class="s0">val </span><span class="s1">gifLoader </span><span class="s2">= </span><span class="s1">rememberGifImageLoader</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">context </span><span class="s2">= </span><span class="s1">LocalContext</span><span class="s2">.</span><span class="s1">current</span>
+
+    <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+        <span class="s1">Column</span><span class="s2">(</span>
+            <span class="s1">Modifier</span>
+                <span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)</span>
+                <span class="s2">.</span><span class="s1">verticalScroll</span><span class="s2">(</span><span class="s1">rememberScrollState</span><span class="s2">())</span>
+        <span class="s2">) {</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s1">workoutName</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Exercício </span><span class="s0">${</span><span class="s1">focusIndex </span><span class="s2">+ </span><span class="s3">1</span><span class="s0">} </span><span class="s4">de </span><span class="s0">${</span><span class="s1">rows</span><span class="s2">.</span><span class="s1">size</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">gifAssetPath</span><span class="s2">.</span><span class="s1">isNotBlank</span><span class="s2">()) {</span>
+                <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                <span class="s1">AsyncImage</span><span class="s2">(</span>
+                    <span class="s1">model </span><span class="s2">= </span><span class="s1">ImageRequest</span><span class="s2">.</span><span class="s1">Builder</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)</span>
+                        <span class="s2">.</span><span class="s1">data</span><span class="s2">(</span><span class="s4">&quot;file:///android_asset/</span><span class="s0">${</span><span class="s1">current</span><span class="s2">.</span><span class="s1">gifAssetPath</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">)</span>
+                        <span class="s2">.</span><span class="s1">crossfade</span><span class="s2">(</span><span class="s0">true</span><span class="s2">)</span>
+                        <span class="s2">.</span><span class="s1">build</span><span class="s2">(),</span>
+                    <span class="s1">imageLoader </span><span class="s2">= </span><span class="s1">gifLoader</span><span class="s2">,</span>
+                    <span class="s1">contentDescription </span><span class="s2">= </span><span class="s4">&quot;Demonstração do exercício&quot;</span><span class="s2">,</span>
+                    <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span>
+                        <span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+                        <span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">220</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">exerciseName</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">2</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">muscleGroup</span><span class="s2">.</span><span class="s1">isNotBlank</span><span class="s2">()) </span><span class="s1">Text</span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">muscleGroup</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s0">val </span><span class="s1">rest </span><span class="s2">= </span><span class="s1">current</span><span class="s2">.</span><span class="s1">restSeconds?</span><span class="s2">.</span><span class="s1">let </span><span class="s2">{ </span><span class="s4">&quot; • Descanso </span><span class="s0">${</span><span class="s1">it</span><span class="s0">}</span><span class="s4">s&quot; </span><span class="s2">} </span><span class="s1">?: </span><span class="s4">&quot;&quot;</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">${</span><span class="s1">current</span><span class="s2">.</span><span class="s1">sets</span><span class="s0">}</span><span class="s4">x</span><span class="s0">${</span><span class="s1">current</span><span class="s2">.</span><span class="s1">reps</span><span class="s0">}$</span><span class="s1">rest</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Séries concluídas: </span><span class="s0">$</span><span class="s1">doneCount </span><span class="s4">/ </span><span class="s0">${</span><span class="s1">doneList</span><span class="s2">.</span><span class="s1">size</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+            <span class="s1">doneList</span><span class="s2">.</span><span class="s1">forEachIndexed </span><span class="s2">{ </span><span class="s1">idx</span><span class="s2">, </span><span class="s1">checked </span><span class="s2">-&gt;</span>
+                <span class="s1">Row</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(), </span><span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span><span class="s2">) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Série </span><span class="s0">${</span><span class="s1">idx </span><span class="s2">+ </span><span class="s3">1</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+                    <span class="s1">Checkbox</span><span class="s2">(</span><span class="s1">checked </span><span class="s2">= </span><span class="s1">checked</span><span class="s2">, </span><span class="s1">onCheckedChange </span><span class="s2">= { </span><span class="s1">onToggleSet</span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">id</span><span class="s2">, </span><span class="s1">idx</span><span class="s2">) })</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Descanso&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">timer</span><span class="s2">.</span><span class="s1">initialSeconds </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) {</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Sugestão: </span><span class="s0">${</span><span class="s1">formatMmSs</span><span class="s2">(</span><span class="s1">suggestedRest</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= { </span><span class="s1">onStartRest</span><span class="s2">(</span><span class="s1">suggestedRest</span><span class="s2">) }, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Iniciar descanso&quot;</span><span class="s2">)</span>
+                        <span class="s2">}</span>
+                    <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">formatMmSs</span><span class="s2">(</span><span class="s1">timer</span><span class="s2">.</span><span class="s1">remainingSeconds</span><span class="s2">), </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+                        <span class="s0">if </span><span class="s2">(</span><span class="s1">timer</span><span class="s2">.</span><span class="s1">finished</span><span class="s2">) {</span>
+                            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Descanso concluído.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                        <span class="s2">}</span>
+
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+                        <span class="s1">Row</span><span class="s2">(</span><span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                            <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onPauseResume</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) {</span>
+                                <span class="s1">Text</span><span class="s2">(</span><span class="s0">if </span><span class="s2">(</span><span class="s1">timer</span><span class="s2">.</span><span class="s1">running</span><span class="s2">) </span><span class="s4">&quot;Pausar&quot; </span><span class="s0">else </span><span class="s4">&quot;Continuar&quot;</span><span class="s2">)</span>
+                            <span class="s2">}</span>
+                            <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onResetRest</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Resetar&quot;</span><span class="s2">) }</span>
+                            <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onZeroRest</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Zerar&quot;</span><span class="s2">) }</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+            <span class="s1">Row</span><span class="s2">(</span><span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onBackToList</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Lista&quot;</span><span class="s2">) }</span>
+                <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onPrev</span><span class="s2">, </span><span class="s1">enabled </span><span class="s2">= </span><span class="s1">focusIndex </span><span class="s2">&gt; </span><span class="s3">0</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Anterior&quot;</span><span class="s2">) }</span>
+                <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onNext</span><span class="s2">, </span><span class="s1">enabled </span><span class="s2">= </span><span class="s1">focusIndex </span><span class="s2">&lt; </span><span class="s1">rows</span><span class="s2">.</span><span class="s1">lastIndex</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Próximo&quot;</span><span class="s2">) }</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onFinish</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Finalizar treino&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">formatMmSs</span><span class="s2">(</span><span class="s1">totalSeconds: Int</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">{</span>
+    <span class="s0">val </span><span class="s1">s </span><span class="s2">= </span><span class="s1">max</span><span class="s2">(</span><span class="s3">0</span><span class="s2">, </span><span class="s1">totalSeconds</span><span class="s2">)</span>
+    <span class="s0">val </span><span class="s1">m </span><span class="s2">= </span><span class="s1">s </span><span class="s2">/ </span><span class="s3">60</span>
+    <span class="s0">val </span><span class="s1">r </span><span class="s2">= </span><span class="s1">s </span><span class="s2">% </span><span class="s3">60</span>
+    <span class="s0">return </span><span class="s4">&quot;%d:%02d&quot;</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span><span class="s1">m</span><span class="s2">, </span><span class="s1">r</span><span class="s2">)</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">baseKeyForDayOfWeek</span><span class="s2">(</span><span class="s1">d: DayOfWeek</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">= </span><span class="s0">when </span><span class="s2">(</span><span class="s1">d</span><span class="s2">) {</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">MONDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;segunda&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">TUESDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;terca&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">WEDNESDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;quarta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">THURSDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;quinta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">FRIDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;sexta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">SATURDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;sabado&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">SUNDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;domingo&quot;</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">labelForDayOfWeek</span><span class="s2">(</span><span class="s1">d: DayOfWeek</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">= </span><span class="s0">when </span><span class="s2">(</span><span class="s1">d</span><span class="s2">) {</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">MONDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Segunda&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">TUESDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Terça&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">WEDNESDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Quarta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">THURSDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Quinta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">FRIDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Sexta&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">SATURDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Sábado&quot;</span>
+    <span class="s1">DayOfWeek</span><span class="s2">.</span><span class="s1">SUNDAY </span><span class="s2">-&gt; </span><span class="s4">&quot;Domingo&quot;</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">normalizeDayName</span><span class="s2">(</span><span class="s1">name: String</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">{</span>
+    <span class="s0">val </span><span class="s1">lower </span><span class="s2">= </span><span class="s1">name</span><span class="s2">.</span><span class="s1">trim</span><span class="s2">().</span><span class="s1">lowercase</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">noAccents </span><span class="s2">= </span><span class="s1">Normalizer</span><span class="s2">.</span><span class="s1">normalize</span><span class="s2">(</span><span class="s1">lower</span><span class="s2">, </span><span class="s1">Normalizer</span><span class="s2">.</span><span class="s1">Form</span><span class="s2">.</span><span class="s1">NFD</span><span class="s2">)</span>
+        <span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\\</span><span class="s4">p{Mn}+&quot;</span><span class="s2">.</span><span class="s1">toRegex</span><span class="s2">(), </span><span class="s4">&quot;&quot;</span><span class="s2">)</span>
+    <span class="s0">val </span><span class="s1">noFeira </span><span class="s2">= </span><span class="s1">noAccents</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;-feira&quot;</span><span class="s2">, </span><span class="s4">&quot;&quot;</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot; feira&quot;</span><span class="s2">, </span><span class="s4">&quot;&quot;</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s1">noFeira</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\\</span><span class="s4">s+&quot;</span><span class="s2">.</span><span class="s1">toRegex</span><span class="s2">(), </span><span class="s4">&quot; &quot;</span><span class="s2">).</span><span class="s1">trim</span><span class="s2">()</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

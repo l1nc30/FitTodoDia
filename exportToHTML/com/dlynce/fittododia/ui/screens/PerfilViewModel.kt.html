@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>PerfilViewModel.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+PerfilViewModel.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">Application</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">AndroidViewModel</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewModelScope</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">AppDatabase</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">repo</span><span class="s2">.</span><span class="s1">SettingsRepository</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">SharingStarted</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">StateFlow</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">map</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">stateIn</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">launch</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">PerfilUiState</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">reminderEnabled: Boolean </span><span class="s2">= </span><span class="s0">false</span>
+<span class="s2">)</span>
+
+<span class="s0">class </span><span class="s1">PerfilViewModel</span><span class="s2">(</span><span class="s1">app: Application</span><span class="s2">) </span><span class="s1">: AndroidViewModel</span><span class="s2">(</span><span class="s1">app</span><span class="s2">) {</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">db </span><span class="s2">= </span><span class="s1">AppDatabase</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">app</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">repo </span><span class="s2">= </span><span class="s1">SettingsRepository</span><span class="s2">(</span><span class="s1">db</span><span class="s2">.</span><span class="s1">settingsDao</span><span class="s2">())</span>
+
+    <span class="s0">val </span><span class="s1">uiState: StateFlow</span><span class="s2">&lt;</span><span class="s1">PerfilUiState</span><span class="s2">&gt; =</span>
+        <span class="s1">repo</span><span class="s2">.</span><span class="s1">observeSettings</span><span class="s2">()</span>
+            <span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">PerfilUiState</span><span class="s2">(</span><span class="s1">reminderEnabled </span><span class="s2">= </span><span class="s1">it</span><span class="s2">.</span><span class="s1">reminderEnabled</span><span class="s2">) }</span>
+            <span class="s2">.</span><span class="s1">stateIn</span><span class="s2">(</span>
+                <span class="s1">scope </span><span class="s2">= </span><span class="s1">viewModelScope</span><span class="s2">,</span>
+                <span class="s1">started </span><span class="s2">= </span><span class="s1">SharingStarted</span><span class="s2">.</span><span class="s1">WhileSubscribed</span><span class="s2">(</span><span class="s3">5_000</span><span class="s2">),</span>
+                <span class="s1">initialValue </span><span class="s2">= </span><span class="s1">PerfilUiState</span><span class="s2">()</span>
+            <span class="s2">)</span>
+
+    <span class="s0">fun </span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s1">enabled: Boolean</span><span class="s2">) {</span>
+        <span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s1">repo</span><span class="s2">.</span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s1">enabled</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

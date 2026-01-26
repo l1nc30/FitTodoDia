@@ -1,0 +1,142 @@
+<html>
+<head>
+<title>PerfilScreen.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #7a7e85;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+PerfilScreen.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">Manifest</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">pm</span><span class="s2">.</span><span class="s1">PackageManager</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Build</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">rememberLauncherForActivityResult</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">result</span><span class="s2">.</span><span class="s1">contract</span><span class="s2">.</span><span class="s1">ActivityResultContracts</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">platform</span><span class="s2">.</span><span class="s1">LocalContext</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">unit</span><span class="s2">.</span><span class="s1">dp</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">core</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">ContextCompat</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewmodel</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">viewModel</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">notifications</span><span class="s2">.</span><span class="s1">ReminderScheduler</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">PerfilScreen</span><span class="s2">() {</span>
+    <span class="s0">val </span><span class="s1">context </span><span class="s2">= </span><span class="s1">LocalContext</span><span class="s2">.</span><span class="s1">current</span>
+    <span class="s0">val </span><span class="s1">vm: PerfilViewModel </span><span class="s2">= </span><span class="s1">viewModel</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">state by vm</span><span class="s2">.</span><span class="s1">uiState</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+
+    <span class="s0">val </span><span class="s1">hasNotifPermission </span><span class="s2">= </span><span class="s1">remember </span><span class="s2">{</span>
+        <span class="s1">mutableStateOf</span><span class="s2">(</span>
+            <span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&lt; </span><span class="s3">33 </span><span class="s2">||</span>
+                    <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span><span class="s2">) ==</span>
+                    <span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s0">val </span><span class="s1">permissionLauncher </span><span class="s2">= </span><span class="s1">rememberLauncherForActivityResult</span><span class="s2">(</span>
+        <span class="s1">ActivityResultContracts</span><span class="s2">.</span><span class="s1">RequestPermission</span><span class="s2">()</span>
+    <span class="s2">) { </span><span class="s1">granted </span><span class="s2">-&gt;</span>
+        <span class="s1">hasNotifPermission</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">granted</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">granted</span><span class="s2">) {</span>
+            <span class="s1">vm</span><span class="s2">.</span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s0">true</span><span class="s2">)</span>
+            <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s3">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s3">0</span><span class="s2">)</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s1">vm</span><span class="s2">.</span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s0">false</span><span class="s2">)</span>
+            <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s4">// Aplica agendamento/cancelamento conforme o estado persistido</span>
+    <span class="s1">LaunchedEffect</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">reminderEnabled</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">permissionOk </span><span class="s2">=</span>
+            <span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&lt; </span><span class="s3">33 </span><span class="s2">||</span>
+                    <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span><span class="s2">) ==</span>
+                    <span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED</span>
+
+        <span class="s1">hasNotifPermission</span><span class="s2">.</span><span class="s1">value </span><span class="s2">= </span><span class="s1">permissionOk</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">reminderEnabled </span><span class="s2">&amp;&amp; </span><span class="s1">permissionOk</span><span class="s2">) {</span>
+            <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s3">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s3">0</span><span class="s2">)</span>
+        <span class="s2">} </span><span class="s0">else if </span><span class="s2">(!</span><span class="s1">state</span><span class="s2">.</span><span class="s1">reminderEnabled</span><span class="s2">) {</span>
+            <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxSize</span><span class="s2">().</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">16</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Perfil&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+            <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Notificações&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+                <span class="s1">Row</span><span class="s2">(</span>
+                    <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                    <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+                <span class="s2">) {</span>
+                    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">(</span><span class="s3">1f</span><span class="s2">)) {</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Ativar lembretes&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyLarge</span><span class="s2">)</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">2</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">Text</span><span class="s2">(</span>
+                            <span class="s5">&quot;Mensagens motivacionais diárias para te ajudar a manter o hábito.&quot;</span><span class="s2">,</span>
+                            <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span>
+                        <span class="s2">)</span>
+                    <span class="s2">}</span>
+
+                    <span class="s1">Switch</span><span class="s2">(</span>
+                        <span class="s1">checked </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">reminderEnabled</span><span class="s2">,</span>
+                        <span class="s1">onCheckedChange </span><span class="s2">= { </span><span class="s1">checked </span><span class="s2">-&gt;</span>
+                            <span class="s0">if </span><span class="s2">(</span><span class="s1">checked</span><span class="s2">) {</span>
+                                <span class="s0">val </span><span class="s1">permissionOk </span><span class="s2">=</span>
+                                    <span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&lt; </span><span class="s3">33 </span><span class="s2">||</span>
+                                            <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span>
+                                                <span class="s1">context</span><span class="s2">,</span>
+                                                <span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span>
+                                            <span class="s2">) == </span><span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED</span>
+
+                                <span class="s0">if </span><span class="s2">(</span><span class="s1">permissionOk</span><span class="s2">) {</span>
+                                    <span class="s1">vm</span><span class="s2">.</span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s0">true</span><span class="s2">)</span>
+                                    <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s3">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s3">0</span><span class="s2">)</span>
+                                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                                    <span class="s1">permissionLauncher</span><span class="s2">.</span><span class="s1">launch</span><span class="s2">(</span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span><span class="s2">)</span>
+                                <span class="s2">}</span>
+                            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                                <span class="s1">vm</span><span class="s2">.</span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s0">false</span><span class="s2">)</span>
+                                <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)</span>
+                            <span class="s2">}</span>
+                        <span class="s2">}</span>
+                    <span class="s2">)</span>
+                <span class="s2">}</span>
+
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s3">33 </span><span class="s2">&amp;&amp; !</span><span class="s1">hasNotifPermission</span><span class="s2">.</span><span class="s1">value</span><span class="s2">) {</span>
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                    <span class="s1">Text</span><span class="s2">(</span>
+                        <span class="s5">&quot;Permissão de notificações está desativada. Ative para receber lembretes.&quot;</span><span class="s2">,</span>
+                        <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span>
+                    <span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

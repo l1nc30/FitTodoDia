@@ -1,0 +1,73 @@
+<html>
+<head>
+<title>AppScaffold.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AppScaffold.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">nav</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">padding</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">Composable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">NavController</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">currentBackStackEntryAsState</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">AppScaffold</span><span class="s2">(</span>
+    <span class="s1">navController: NavController</span><span class="s2">,</span>
+    <span class="s1">content: @Composable </span><span class="s2">() -&gt; </span><span class="s1">Unit</span>
+<span class="s2">) {</span>
+    <span class="s0">val </span><span class="s1">backStack </span><span class="s2">= </span><span class="s1">navController</span><span class="s2">.</span><span class="s1">currentBackStackEntryAsState</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">current </span><span class="s2">= </span><span class="s1">backStack</span><span class="s2">.</span><span class="s1">value?</span><span class="s2">.</span><span class="s1">destination?</span><span class="s2">.</span><span class="s1">route</span>
+
+    <span class="s0">val </span><span class="s1">items </span><span class="s2">= </span><span class="s1">listOf</span><span class="s2">(</span>
+        <span class="s1">Route</span><span class="s2">.</span><span class="s1">Home to </span><span class="s3">&quot;Hoje&quot;</span><span class="s2">,</span>
+        <span class="s1">Route</span><span class="s2">.</span><span class="s1">Agenda to </span><span class="s3">&quot;Agenda&quot;</span><span class="s2">,</span>
+        <span class="s1">Route</span><span class="s2">.</span><span class="s1">Treino to </span><span class="s3">&quot;Treino&quot;</span><span class="s2">,</span>
+        <span class="s1">Route</span><span class="s2">.</span><span class="s1">Progresso to </span><span class="s3">&quot;Progresso&quot;</span><span class="s2">,</span>
+        <span class="s1">Route</span><span class="s2">.</span><span class="s1">Perfil to </span><span class="s3">&quot;Perfil&quot;</span><span class="s2">,</span>
+    <span class="s2">)</span>
+
+    <span class="s1">Scaffold</span><span class="s2">(</span>
+        <span class="s1">bottomBar </span><span class="s2">= {</span>
+            <span class="s1">NavigationBar </span><span class="s2">{</span>
+                <span class="s1">items</span><span class="s2">.</span><span class="s1">forEach </span><span class="s2">{ (</span><span class="s1">route</span><span class="s2">, </span><span class="s1">label</span><span class="s2">) -&gt;</span>
+                    <span class="s1">NavigationBarItem</span><span class="s2">(</span>
+                        <span class="s1">selected </span><span class="s2">= </span><span class="s1">current </span><span class="s2">== </span><span class="s1">route</span><span class="s2">.</span><span class="s1">path</span><span class="s2">,</span>
+                        <span class="s1">onClick </span><span class="s2">= {</span>
+                            <span class="s0">if </span><span class="s2">(</span><span class="s1">current </span><span class="s2">!= </span><span class="s1">route</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) {</span>
+                                <span class="s1">navController</span><span class="s2">.</span><span class="s1">navigate</span><span class="s2">(</span><span class="s1">route</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) {</span>
+                                    <span class="s1">popUpTo</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Home</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) { </span><span class="s1">saveState </span><span class="s2">= </span><span class="s0">true </span><span class="s2">}</span>
+                                    <span class="s1">launchSingleTop </span><span class="s2">= </span><span class="s0">true</span>
+                                    <span class="s1">restoreState </span><span class="s2">= </span><span class="s0">true</span>
+                                <span class="s2">}</span>
+                            <span class="s2">}</span>
+                        <span class="s2">},</span>
+                        <span class="s1">label </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s1">label</span><span class="s2">) },</span>
+                        <span class="s1">icon </span><span class="s2">= { </span><span class="s4">/* MVP: sem ícones por enquanto */ </span><span class="s2">}</span>
+                    <span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">) { </span><span class="s1">padding </span><span class="s2">-&gt;</span>
+        <span class="s1">Surface</span><span class="s2">(</span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s1">padding</span><span class="s2">)) {</span>
+            <span class="s1">content</span><span class="s2">()</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>AppNav.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AppNav.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">nav</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">Composable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">NavType</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">NavHost</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">composable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">rememberNavController</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">navigation</span><span class="s2">.</span><span class="s1">navArgument</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">AgendaScreen</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">EditWorkoutScreen</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">HomeScreen</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">PerfilScreen</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">ProgressoScreen</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span><span class="s2">.</span><span class="s1">TreinoScreen</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">AppNav</span><span class="s2">() {</span>
+    <span class="s0">val </span><span class="s1">navController </span><span class="s2">= </span><span class="s1">rememberNavController</span><span class="s2">()</span>
+
+    <span class="s1">AppScaffold</span><span class="s2">(</span><span class="s1">navController </span><span class="s2">= </span><span class="s1">navController</span><span class="s2">) {</span>
+        <span class="s1">NavHost</span><span class="s2">(</span>
+            <span class="s1">navController </span><span class="s2">= </span><span class="s1">navController</span><span class="s2">,</span>
+            <span class="s1">startDestination </span><span class="s2">= </span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Home</span><span class="s2">.</span><span class="s1">path</span>
+        <span class="s2">) {</span>
+            <span class="s1">composable</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Home</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) { </span><span class="s1">HomeScreen</span><span class="s2">() }</span>
+
+            <span class="s1">composable</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Agenda</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) {</span>
+                <span class="s1">AgendaScreen</span><span class="s2">(</span><span class="s1">onDayClick </span><span class="s2">= { </span><span class="s1">dayId </span><span class="s2">-&gt;</span>
+                    <span class="s1">navController</span><span class="s2">.</span><span class="s1">navigate</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">EditWorkout</span><span class="s2">.</span><span class="s1">create</span><span class="s2">(</span><span class="s1">dayId</span><span class="s2">))</span>
+                <span class="s2">})</span>
+            <span class="s2">}</span>
+
+            <span class="s1">composable</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Treino</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) {</span>
+                <span class="s1">TreinoScreen</span><span class="s2">(</span>
+                    <span class="s1">onNavigateToProgress </span><span class="s2">= {</span>
+                        <span class="s1">navController</span><span class="s2">.</span><span class="s1">navigate</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Progresso</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) {</span>
+                            <span class="s1">launchSingleTop </span><span class="s2">= </span><span class="s0">true</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">composable</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Progresso</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) { </span><span class="s1">ProgressoScreen</span><span class="s2">() }</span>
+            <span class="s1">composable</span><span class="s2">(</span><span class="s1">Route</span><span class="s2">.</span><span class="s1">Perfil</span><span class="s2">.</span><span class="s1">path</span><span class="s2">) { </span><span class="s1">PerfilScreen</span><span class="s2">() }</span>
+
+            <span class="s1">composable</span><span class="s2">(</span>
+                <span class="s1">route </span><span class="s2">= </span><span class="s1">Route</span><span class="s2">.</span><span class="s1">EditWorkout</span><span class="s2">.</span><span class="s1">path</span><span class="s2">,</span>
+                <span class="s1">arguments </span><span class="s2">= </span><span class="s1">listOf</span><span class="s2">(</span><span class="s1">navArgument</span><span class="s2">(</span><span class="s3">&quot;dayId&quot;</span><span class="s2">) { </span><span class="s1">type </span><span class="s2">= </span><span class="s1">NavType</span><span class="s2">.</span><span class="s1">IntType </span><span class="s2">})</span>
+            <span class="s2">) { </span><span class="s1">backStackEntry </span><span class="s2">-&gt;</span>
+                <span class="s0">val </span><span class="s1">dayId </span><span class="s2">= </span><span class="s1">backStackEntry</span><span class="s2">.</span><span class="s1">arguments?</span><span class="s2">.</span><span class="s1">getInt</span><span class="s2">(</span><span class="s3">&quot;dayId&quot;</span><span class="s2">) </span><span class="s1">?: </span><span class="s4">1</span>
+
+                <span class="s1">EditWorkoutScreen</span><span class="s2">(</span>
+                    <span class="s1">dayId </span><span class="s2">= </span><span class="s1">dayId</span><span class="s2">,</span>
+                    <span class="s1">onBack </span><span class="s2">= { </span><span class="s1">navController</span><span class="s2">.</span><span class="s1">popBackStack</span><span class="s2">() },</span>
+                    <span class="s1">onOpenLibrary </span><span class="s2">= { </span><span class="s5">/* removido por enquanto */ </span><span class="s2">}</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<html>
+<head>
+<title>ReminderScheduler.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #5f826b; font-style: italic;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ReminderScheduler.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">notifications</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Context</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">work</span><span class="s2">.</span><span class="s1">ExistingWorkPolicy</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">work</span><span class="s2">.</span><span class="s1">OneTimeWorkRequestBuilder</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">work</span><span class="s2">.</span><span class="s1">WorkManager</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">Duration</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">ZoneId</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">ZonedDateTime</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">concurrent</span><span class="s2">.</span><span class="s1">TimeUnit</span>
+
+<span class="s0">object </span><span class="s1">ReminderScheduler </span><span class="s2">{</span>
+
+    <span class="s1">private const </span><span class="s0">val </span><span class="s1">UNIQUE_WORK_NAME </span><span class="s2">= </span><span class="s3">&quot;daily_training_reminder&quot;</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">zone </span><span class="s2">= </span><span class="s1">ZoneId</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s3">&quot;America/Sao_Paulo&quot;</span><span class="s2">)</span>
+
+    <span class="s4">/**</span>
+     <span class="s4">* Agenda 1 notificação por dia no horário definido.</span>
+     <span class="s4">* Padrão: 18:00</span>
+     <span class="s4">*/</span>
+    <span class="s0">fun </span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s1">context: Context</span><span class="s2">, </span><span class="s1">hour: Int </span><span class="s2">= </span><span class="s5">18</span><span class="s2">, </span><span class="s1">minute: Int </span><span class="s2">= </span><span class="s5">0</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">delayMs </span><span class="s2">= </span><span class="s1">millisUntilNextTime</span><span class="s2">(</span><span class="s1">hour</span><span class="s2">, </span><span class="s1">minute</span><span class="s2">)</span>
+
+        <span class="s0">val </span><span class="s1">request </span><span class="s2">= </span><span class="s1">OneTimeWorkRequestBuilder</span><span class="s2">&lt;</span><span class="s1">TrainingReminderWorker</span><span class="s2">&gt;()</span>
+            <span class="s2">.</span><span class="s1">setInitialDelay</span><span class="s2">(</span><span class="s1">delayMs</span><span class="s2">, </span><span class="s1">TimeUnit</span><span class="s2">.</span><span class="s1">MILLISECONDS</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">addTag</span><span class="s2">(</span><span class="s1">UNIQUE_WORK_NAME</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">build</span><span class="s2">()</span>
+
+        <span class="s1">WorkManager</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">context</span><span class="s2">).</span><span class="s1">enqueueUniqueWork</span><span class="s2">(</span>
+            <span class="s1">UNIQUE_WORK_NAME</span><span class="s2">,</span>
+            <span class="s1">ExistingWorkPolicy</span><span class="s2">.</span><span class="s1">REPLACE</span><span class="s2">,</span>
+            <span class="s1">request</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">cancel</span><span class="s2">(</span><span class="s1">context: Context</span><span class="s2">) {</span>
+        <span class="s1">WorkManager</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">context</span><span class="s2">).</span><span class="s1">cancelUniqueWork</span><span class="s2">(</span><span class="s1">UNIQUE_WORK_NAME</span><span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">millisUntilNextTime</span><span class="s2">(</span><span class="s1">hour: Int</span><span class="s2">, </span><span class="s1">minute: Int</span><span class="s2">)</span><span class="s1">: Long </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s1">now </span><span class="s2">= </span><span class="s1">ZonedDateTime</span><span class="s2">.</span><span class="s1">now</span><span class="s2">(</span><span class="s1">zone</span><span class="s2">)</span>
+        <span class="s0">var </span><span class="s1">next </span><span class="s2">= </span><span class="s1">now</span><span class="s2">.</span><span class="s1">withHour</span><span class="s2">(</span><span class="s1">hour</span><span class="s2">).</span><span class="s1">withMinute</span><span class="s2">(</span><span class="s1">minute</span><span class="s2">).</span><span class="s1">withSecond</span><span class="s2">(</span><span class="s5">0</span><span class="s2">).</span><span class="s1">withNano</span><span class="s2">(</span><span class="s5">0</span><span class="s2">)</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">next</span><span class="s2">.</span><span class="s1">isAfter</span><span class="s2">(</span><span class="s1">now</span><span class="s2">)) </span><span class="s1">next </span><span class="s2">= </span><span class="s1">next</span><span class="s2">.</span><span class="s1">plusDays</span><span class="s2">(</span><span class="s5">1</span><span class="s2">)</span>
+        <span class="s0">return </span><span class="s1">Duration</span><span class="s2">.</span><span class="s1">between</span><span class="s2">(</span><span class="s1">now</span><span class="s2">, </span><span class="s1">next</span><span class="s2">).</span><span class="s1">toMillis</span><span class="s2">().</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s5">1</span><span class="s2">)</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

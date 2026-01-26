@@ -1,0 +1,514 @@
+<html>
+<head>
+<title>ProgressoScreen.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #7a7e85;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ProgressoScreen.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">Application</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">LazyColumn</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">items</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">unit</span><span class="s2">.</span><span class="s1">dp</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">AndroidViewModel</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewModelScope</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewmodel</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">viewModel</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">AppDatabase</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span><span class="s2">.</span><span class="s1">SessionSummaryRow</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">DailyMissionEntity</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">SharingStarted</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">StateFlow</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">combine</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">stateIn</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">launch</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">LocalDate</span>
+<span class="s1">import java</span><span class="s2">.</span><span class="s1">time</span><span class="s2">.</span><span class="s1">ZoneId</span>
+<span class="s1">import kotlin</span><span class="s2">.</span><span class="s1">math</span><span class="s2">.</span><span class="s1">max</span>
+<span class="s1">import kotlin</span><span class="s2">.</span><span class="s1">math</span><span class="s2">.</span><span class="s1">min</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">ProgressoUiState</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">levelInfo: LevelInfo </span><span class="s2">= </span><span class="s1">LevelInfo</span><span class="s2">(</span><span class="s1">level </span><span class="s2">= </span><span class="s3">1</span><span class="s2">, </span><span class="s1">xpInLevel </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">xpForNext </span><span class="s2">= </span><span class="s3">200</span><span class="s2">, </span><span class="s1">totalXp </span><span class="s2">= </span><span class="s3">0</span><span class="s2">),</span>
+    <span class="s0">val </span><span class="s1">streak: ProgressoStreakInfo </span><span class="s2">= </span><span class="s1">ProgressoStreakInfo</span><span class="s2">(</span><span class="s1">current </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">best </span><span class="s2">= </span><span class="s3">0</span><span class="s2">, </span><span class="s1">trainedToday </span><span class="s2">= </span><span class="s0">false</span><span class="s2">),</span>
+    <span class="s0">val </span><span class="s1">mission: MissionUi </span><span class="s2">= </span><span class="s1">MissionUi</span><span class="s2">.</span><span class="s1">empty</span><span class="s2">(),</span>
+    <span class="s0">val </span><span class="s1">achievements: List</span><span class="s2">&lt;</span><span class="s1">AchievementUi</span><span class="s2">&gt; = </span><span class="s1">emptyList</span><span class="s2">(),</span>
+    <span class="s0">val </span><span class="s1">sessions: List</span><span class="s2">&lt;</span><span class="s1">SessionSummaryUi</span><span class="s2">&gt; = </span><span class="s1">emptyList</span><span class="s2">()</span>
+<span class="s2">)</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">LevelInfo</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">level: Int</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">xpInLevel: Int</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">xpForNext: Int</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">totalXp: Int</span>
+<span class="s2">)</span>
+
+<span class="s4">// ✅ RENOMEADO para não conflitar com StreakInfo do TreinoScreen.kt</span>
+<span class="s1">data </span><span class="s0">class </span><span class="s1">ProgressoStreakInfo</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">current: Int</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">best: Int</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">trainedToday: Boolean</span>
+<span class="s2">)</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">MissionUi</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">title: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">description: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">completed: Boolean</span>
+<span class="s2">) {</span>
+    <span class="s1">companion </span><span class="s0">object </span><span class="s2">{ </span><span class="s0">fun </span><span class="s1">empty</span><span class="s2">() = </span><span class="s1">MissionUi</span><span class="s2">(</span><span class="s5">&quot;&quot;</span><span class="s2">, </span><span class="s5">&quot;&quot;</span><span class="s2">, </span><span class="s0">false</span><span class="s2">) }</span>
+<span class="s2">}</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">AchievementUi</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">title: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">description: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">unlocked: Boolean</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">progressText: String? </span><span class="s2">= </span><span class="s0">null</span>
+<span class="s2">)</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">SessionSummaryUi</span><span class="s2">(</span>
+    <span class="s0">val </span><span class="s1">id: Long</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">dateText: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">workoutName: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">durationText: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">setsText: String</span><span class="s2">,</span>
+    <span class="s0">val </span><span class="s1">xpGained: Int</span>
+<span class="s2">)</span>
+
+<span class="s1">private </span><span class="s0">object </span><span class="s1">MissionKeys </span><span class="s2">{</span>
+    <span class="s1">const </span><span class="s0">val </span><span class="s1">START </span><span class="s2">= </span><span class="s5">&quot;START&quot;</span>
+    <span class="s1">const </span><span class="s0">val </span><span class="s1">KEEP </span><span class="s2">= </span><span class="s5">&quot;KEEP&quot;</span>
+    <span class="s1">const </span><span class="s0">val </span><span class="s1">RECOVER </span><span class="s2">= </span><span class="s5">&quot;RECOVER&quot;</span>
+    <span class="s1">const </span><span class="s0">val </span><span class="s1">PLAN </span><span class="s2">= </span><span class="s5">&quot;PLAN&quot;</span>
+<span class="s2">}</span>
+
+<span class="s0">class </span><span class="s1">ProgressoViewModel</span><span class="s2">(</span><span class="s1">app: Application</span><span class="s2">) </span><span class="s1">: AndroidViewModel</span><span class="s2">(</span><span class="s1">app</span><span class="s2">) {</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">db </span><span class="s2">= </span><span class="s1">AppDatabase</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">app</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">zone </span><span class="s2">= </span><span class="s1">ZoneId</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s5">&quot;America/Sao_Paulo&quot;</span><span class="s2">)</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">todayEpoch: Long get</span><span class="s2">() = </span><span class="s1">LocalDate</span><span class="s2">.</span><span class="s1">now</span><span class="s2">(</span><span class="s1">zone</span><span class="s2">).</span><span class="s1">toEpochDay</span><span class="s2">()</span>
+
+    <span class="s0">val </span><span class="s1">uiState: StateFlow</span><span class="s2">&lt;</span><span class="s1">ProgressoUiState</span><span class="s2">&gt; =</span>
+        <span class="s1">db</span><span class="s2">.</span><span class="s1">workoutSessionDao</span><span class="s2">().</span><span class="s1">observeAllSummaries</span><span class="s2">()</span>
+            <span class="s2">.</span><span class="s1">combine</span><span class="s2">(</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">observeByDate</span><span class="s2">(</span><span class="s1">todayEpoch</span><span class="s2">)) { </span><span class="s1">summaries</span><span class="s2">, </span><span class="s1">missionRow </span><span class="s2">-&gt;</span>
+                <span class="s0">val </span><span class="s1">uniqueDaysDesc </span><span class="s2">= </span><span class="s1">summaries</span><span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">it</span><span class="s2">.</span><span class="s1">dateEpochDay </span><span class="s2">}.</span><span class="s1">distinct</span><span class="s2">().</span><span class="s1">sortedDescending</span><span class="s2">()</span>
+                <span class="s0">val </span><span class="s1">streakInfo </span><span class="s2">= </span><span class="s1">computeStreak</span><span class="s2">(</span><span class="s1">uniqueDaysDesc</span><span class="s2">, </span><span class="s1">todayEpoch</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">totalXp </span><span class="s2">= </span><span class="s1">summaries</span><span class="s2">.</span><span class="s1">sumOf </span><span class="s2">{ </span><span class="s1">xpForSession</span><span class="s2">(</span><span class="s1">it</span><span class="s2">) }</span>
+                <span class="s0">val </span><span class="s1">levelInfo </span><span class="s2">= </span><span class="s1">levelFromTotalXp</span><span class="s2">(</span><span class="s1">totalXp</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">totalSessions </span><span class="s2">= </span><span class="s1">summaries</span><span class="s2">.</span><span class="s1">size</span>
+                <span class="s0">val </span><span class="s1">totalSetsDoneAll </span><span class="s2">= </span><span class="s1">summaries</span><span class="s2">.</span><span class="s1">sumOf </span><span class="s2">{ </span><span class="s1">it</span><span class="s2">.</span><span class="s1">totalSetsDone </span><span class="s2">}</span>
+
+                <span class="s4">// Missão do dia:</span>
+                <span class="s0">val </span><span class="s1">missionKeyForDisplay </span><span class="s2">=</span>
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">streakInfo</span><span class="s2">.</span><span class="s1">trainedToday</span><span class="s2">) </span><span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">RECOVER</span>
+                    <span class="s0">else </span><span class="s1">missionRow?</span><span class="s2">.</span><span class="s1">missionKey ?: defaultMissionKey</span><span class="s2">(</span><span class="s1">streakInfo</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">completed </span><span class="s2">=</span>
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">streakInfo</span><span class="s2">.</span><span class="s1">trainedToday</span><span class="s2">) </span><span class="s0">true</span>
+                    <span class="s0">else </span><span class="s2">(</span><span class="s1">missionRow?</span><span class="s2">.</span><span class="s1">completed </span><span class="s2">== </span><span class="s0">true</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">missionUi </span><span class="s2">= </span><span class="s1">missionFromKey</span><span class="s2">(</span><span class="s1">missionKeyForDisplay</span><span class="s2">, </span><span class="s1">completed</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">achievements </span><span class="s2">= </span><span class="s1">buildAchievements</span><span class="s2">(</span>
+                    <span class="s1">totalSessions </span><span class="s2">= </span><span class="s1">totalSessions</span><span class="s2">,</span>
+                    <span class="s1">totalSetsDoneAll </span><span class="s2">= </span><span class="s1">totalSetsDoneAll</span><span class="s2">,</span>
+                    <span class="s1">currentStreak </span><span class="s2">= </span><span class="s1">streakInfo</span><span class="s2">.</span><span class="s1">current</span><span class="s2">,</span>
+                    <span class="s1">bestStreak </span><span class="s2">= </span><span class="s1">streakInfo</span><span class="s2">.</span><span class="s1">best</span>
+                <span class="s2">)</span>
+
+                <span class="s1">ProgressoUiState</span><span class="s2">(</span>
+                    <span class="s1">levelInfo </span><span class="s2">= </span><span class="s1">levelInfo</span><span class="s2">,</span>
+                    <span class="s1">streak </span><span class="s2">= </span><span class="s1">streakInfo</span><span class="s2">,</span>
+                    <span class="s1">mission </span><span class="s2">= </span><span class="s1">missionUi</span><span class="s2">,</span>
+                    <span class="s1">achievements </span><span class="s2">= </span><span class="s1">achievements</span><span class="s2">,</span>
+                    <span class="s1">sessions </span><span class="s2">= </span><span class="s1">summaries</span><span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">it</span><span class="s2">.</span><span class="s1">toUi</span><span class="s2">() }</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+            <span class="s2">.</span><span class="s1">stateIn</span><span class="s2">(</span>
+                <span class="s1">scope </span><span class="s2">= </span><span class="s1">viewModelScope</span><span class="s2">,</span>
+                <span class="s1">started </span><span class="s2">= </span><span class="s1">SharingStarted</span><span class="s2">.</span><span class="s1">WhileSubscribed</span><span class="s2">(</span><span class="s3">5_000</span><span class="s2">),</span>
+                <span class="s1">initialValue </span><span class="s2">= </span><span class="s1">ProgressoUiState</span><span class="s2">()</span>
+            <span class="s2">)</span>
+
+    <span class="s1">init </span><span class="s2">{</span>
+        <span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s0">val </span><span class="s1">existing </span><span class="s2">= </span><span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">getByDate</span><span class="s2">(</span><span class="s1">todayEpoch</span><span class="s2">)</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">existing </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">upsert</span><span class="s2">(</span>
+                    <span class="s1">DailyMissionEntity</span><span class="s2">(</span>
+                        <span class="s1">dateEpochDay </span><span class="s2">= </span><span class="s1">todayEpoch</span><span class="s2">,</span>
+                        <span class="s1">missionKey </span><span class="s2">= </span><span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">START</span><span class="s2">,</span>
+                        <span class="s1">completed </span><span class="s2">= </span><span class="s0">false</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">markMissionDone</span><span class="s2">() {</span>
+        <span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s0">val </span><span class="s1">row </span><span class="s2">= </span><span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">getByDate</span><span class="s2">(</span><span class="s1">todayEpoch</span><span class="s2">)</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">row </span><span class="s2">!= </span><span class="s0">null </span><span class="s2">&amp;&amp; !</span><span class="s1">row</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">) {</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">upsert</span><span class="s2">(</span><span class="s1">row</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">completed </span><span class="s2">= </span><span class="s0">true</span><span class="s2">))</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">undoMissionDone</span><span class="s2">() {</span>
+        <span class="s1">viewModelScope</span><span class="s2">.</span><span class="s1">launch </span><span class="s2">{</span>
+            <span class="s0">val </span><span class="s1">row </span><span class="s2">= </span><span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">getByDate</span><span class="s2">(</span><span class="s1">todayEpoch</span><span class="s2">)</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">row </span><span class="s2">!= </span><span class="s0">null </span><span class="s2">&amp;&amp; </span><span class="s1">row</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">) {</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">dailyMissionDao</span><span class="s2">().</span><span class="s1">upsert</span><span class="s2">(</span><span class="s1">row</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">completed </span><span class="s2">= </span><span class="s0">false</span><span class="s2">))</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">defaultMissionKey</span><span class="s2">(</span><span class="s1">streak: ProgressoStreakInfo</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">{</span>
+        <span class="s0">return when </span><span class="s2">{</span>
+            <span class="s1">streak</span><span class="s2">.</span><span class="s1">current </span><span class="s2">&gt;= </span><span class="s3">3 </span><span class="s2">-&gt; </span><span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">KEEP</span>
+            <span class="s0">else </span><span class="s2">-&gt; </span><span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">START</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">missionFromKey</span><span class="s2">(</span><span class="s1">key: String</span><span class="s2">, </span><span class="s1">completed: Boolean</span><span class="s2">)</span><span class="s1">: MissionUi </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s2">(</span><span class="s1">title</span><span class="s2">, </span><span class="s1">desc</span><span class="s2">) = </span><span class="s0">when </span><span class="s2">(</span><span class="s1">key</span><span class="s2">) {</span>
+            <span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">RECOVER </span><span class="s2">-&gt; </span><span class="s5">&quot;Recuperação inteligente&quot; </span><span class="s1">to</span>
+                    <span class="s5">&quot;Você já treinou hoje. Agora ganha quem recupera: água, comida e sono. Sem pressa.&quot;</span>
+            <span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">KEEP </span><span class="s2">-&gt; </span><span class="s5">&quot;Manter o hábito&quot; </span><span class="s1">to</span>
+                    <span class="s5">&quot;Hoje é dia de aparecer. Comece leve, com técnica e controle. Segurança primeiro.&quot;</span>
+            <span class="s1">MissionKeys</span><span class="s2">.</span><span class="s1">PLAN </span><span class="s2">-&gt; </span><span class="s5">&quot;Preparar o terreno&quot; </span><span class="s1">to</span>
+                    <span class="s5">&quot;Organize o próximo treino e deixe tudo pronto. Facilitar é vencer.&quot;</span>
+            <span class="s0">else </span><span class="s2">-&gt; </span><span class="s5">&quot;Dar o primeiro passo&quot; </span><span class="s1">to</span>
+                    <span class="s5">&quot;Não negocie com a preguiça: abra o treino do dia e faça o aquecimento. Depois você decide o resto.&quot;</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">MissionUi</span><span class="s2">(</span><span class="s1">title </span><span class="s2">= </span><span class="s1">title</span><span class="s2">, </span><span class="s1">description </span><span class="s2">= </span><span class="s1">desc</span><span class="s2">, </span><span class="s1">completed </span><span class="s2">= </span><span class="s1">completed</span><span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">SessionSummaryRow</span><span class="s2">.</span><span class="s1">toUi</span><span class="s2">()</span><span class="s1">: SessionSummaryUi </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s1">date </span><span class="s2">= </span><span class="s1">LocalDate</span><span class="s2">.</span><span class="s1">ofEpochDay</span><span class="s2">(</span><span class="s0">this</span><span class="s2">.</span><span class="s1">dateEpochDay</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">dateText </span><span class="s2">= </span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">date</span><span class="s2">.</span><span class="s1">dayOfMonth</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">().</span><span class="s1">padStart</span><span class="s2">(</span><span class="s3">2</span><span class="s2">, </span><span class="s5">'0'</span><span class="s2">)</span><span class="s0">}</span><span class="s5">/&quot; </span><span class="s2">+</span>
+                <span class="s5">&quot;</span><span class="s0">${</span><span class="s1">date</span><span class="s2">.</span><span class="s1">monthValue</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">().</span><span class="s1">padStart</span><span class="s2">(</span><span class="s3">2</span><span class="s2">, </span><span class="s5">'0'</span><span class="s2">)</span><span class="s0">}</span><span class="s5">/&quot; </span><span class="s2">+</span>
+                <span class="s5">&quot;</span><span class="s0">${</span><span class="s1">date</span><span class="s2">.</span><span class="s1">year</span><span class="s0">}</span><span class="s5">&quot;</span>
+
+        <span class="s0">val </span><span class="s1">durationText </span><span class="s2">= </span><span class="s1">formatDuration</span><span class="s2">(</span><span class="s0">this</span><span class="s2">.</span><span class="s1">durationSeconds</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">setsText </span><span class="s2">= </span><span class="s5">&quot;</span><span class="s0">${this</span><span class="s2">.</span><span class="s1">totalSetsDone</span><span class="s0">}</span><span class="s5">/</span><span class="s0">${this</span><span class="s2">.</span><span class="s1">totalSetsPlanned</span><span class="s0">} </span><span class="s5">séries&quot;</span>
+        <span class="s0">val </span><span class="s1">xp </span><span class="s2">= </span><span class="s1">xpForSession</span><span class="s2">(</span><span class="s0">this</span><span class="s2">)</span>
+
+        <span class="s0">return </span><span class="s1">SessionSummaryUi</span><span class="s2">(</span>
+            <span class="s1">id </span><span class="s2">= </span><span class="s0">this</span><span class="s2">.</span><span class="s1">id</span><span class="s2">,</span>
+            <span class="s1">dateText </span><span class="s2">= </span><span class="s1">dateText</span><span class="s2">,</span>
+            <span class="s1">workoutName </span><span class="s2">= </span><span class="s0">this</span><span class="s2">.</span><span class="s1">workoutNameSnapshot</span><span class="s2">,</span>
+            <span class="s1">durationText </span><span class="s2">= </span><span class="s1">durationText</span><span class="s2">,</span>
+            <span class="s1">setsText </span><span class="s2">= </span><span class="s1">setsText</span><span class="s2">,</span>
+            <span class="s1">xpGained </span><span class="s2">= </span><span class="s1">xp</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">formatDuration</span><span class="s2">(</span><span class="s1">totalSeconds: Int</span><span class="s2">)</span><span class="s1">: String </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s1">s </span><span class="s2">= </span><span class="s1">totalSeconds</span><span class="s2">.</span><span class="s1">coerceAtLeast</span><span class="s2">(</span><span class="s3">0</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">m </span><span class="s2">= </span><span class="s1">s </span><span class="s2">/ </span><span class="s3">60</span>
+        <span class="s0">val </span><span class="s1">r </span><span class="s2">= </span><span class="s1">s </span><span class="s2">% </span><span class="s3">60</span>
+        <span class="s0">return if </span><span class="s2">(</span><span class="s1">m </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) </span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">r</span><span class="s0">}</span><span class="s5">s&quot; </span><span class="s0">else </span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">m</span><span class="s0">}</span><span class="s5">m </span><span class="s0">${</span><span class="s1">r</span><span class="s0">}</span><span class="s5">s&quot;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s4">// -------------------- Regras --------------------</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">xpForSession</span><span class="s2">(</span><span class="s1">s: SessionSummaryRow</span><span class="s2">)</span><span class="s1">: Int </span><span class="s2">{</span>
+    <span class="s0">val </span><span class="s1">base </span><span class="s2">= </span><span class="s3">80</span>
+    <span class="s0">val </span><span class="s1">perExercise </span><span class="s2">= </span><span class="s3">8 </span><span class="s2">* </span><span class="s1">s</span><span class="s2">.</span><span class="s1">totalExercises</span>
+    <span class="s0">val </span><span class="s1">perSetDone </span><span class="s2">= </span><span class="s3">3 </span><span class="s2">* </span><span class="s1">s</span><span class="s2">.</span><span class="s1">totalSetsDone</span>
+    <span class="s0">return </span><span class="s1">base </span><span class="s2">+ </span><span class="s1">perExercise </span><span class="s2">+ </span><span class="s1">perSetDone</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">xpNeededForLevel</span><span class="s2">(</span><span class="s1">level: Int</span><span class="s2">)</span><span class="s1">: Int </span><span class="s2">= </span><span class="s3">200 </span><span class="s2">+ </span><span class="s1">max</span><span class="s2">(</span><span class="s3">0</span><span class="s2">, </span><span class="s1">level </span><span class="s2">- </span><span class="s3">1</span><span class="s2">) * </span><span class="s3">100</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">levelFromTotalXp</span><span class="s2">(</span><span class="s1">totalXp: Int</span><span class="s2">)</span><span class="s1">: LevelInfo </span><span class="s2">{</span>
+    <span class="s0">var </span><span class="s1">level </span><span class="s2">= </span><span class="s3">1</span>
+    <span class="s0">var </span><span class="s1">remaining </span><span class="s2">= </span><span class="s1">max</span><span class="s2">(</span><span class="s3">0</span><span class="s2">, </span><span class="s1">totalXp</span><span class="s2">)</span>
+    <span class="s0">var </span><span class="s1">need </span><span class="s2">= </span><span class="s1">xpNeededForLevel</span><span class="s2">(</span><span class="s1">level</span><span class="s2">)</span>
+
+    <span class="s0">while </span><span class="s2">(</span><span class="s1">remaining </span><span class="s2">&gt;= </span><span class="s1">need</span><span class="s2">) {</span>
+        <span class="s1">remaining </span><span class="s2">-= </span><span class="s1">need</span>
+        <span class="s1">level </span><span class="s2">+= </span><span class="s3">1</span>
+        <span class="s1">need </span><span class="s2">= </span><span class="s1">xpNeededForLevel</span><span class="s2">(</span><span class="s1">level</span><span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s0">return </span><span class="s1">LevelInfo</span><span class="s2">(</span><span class="s1">level </span><span class="s2">= </span><span class="s1">level</span><span class="s2">, </span><span class="s1">xpInLevel </span><span class="s2">= </span><span class="s1">remaining</span><span class="s2">, </span><span class="s1">xpForNext </span><span class="s2">= </span><span class="s1">need</span><span class="s2">, </span><span class="s1">totalXp </span><span class="s2">= </span><span class="s1">totalXp</span><span class="s2">)</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">computeStreak</span><span class="s2">(</span><span class="s1">uniqueDaysDesc: List</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">&gt;, </span><span class="s1">todayEpochDay: Long</span><span class="s2">)</span><span class="s1">: ProgressoStreakInfo </span><span class="s2">{</span>
+    <span class="s0">val </span><span class="s1">trainedToday </span><span class="s2">= </span><span class="s1">uniqueDaysDesc</span><span class="s2">.</span><span class="s1">firstOrNull</span><span class="s2">() == </span><span class="s1">todayEpochDay</span>
+
+    <span class="s0">var </span><span class="s1">current </span><span class="s2">= </span><span class="s3">0</span>
+    <span class="s0">if </span><span class="s2">(</span><span class="s1">trainedToday</span><span class="s2">) {</span>
+        <span class="s1">current </span><span class="s2">= </span><span class="s3">1</span>
+        <span class="s0">var </span><span class="s1">expected </span><span class="s2">= </span><span class="s1">todayEpochDay </span><span class="s2">- </span><span class="s3">1</span>
+        <span class="s0">val </span><span class="s1">set </span><span class="s2">= </span><span class="s1">uniqueDaysDesc</span><span class="s2">.</span><span class="s1">toHashSet</span><span class="s2">()</span>
+        <span class="s0">while </span><span class="s2">(</span><span class="s1">set</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">expected</span><span class="s2">)) {</span>
+            <span class="s1">current </span><span class="s2">+= </span><span class="s3">1</span>
+            <span class="s1">expected </span><span class="s2">-= </span><span class="s3">1</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">var </span><span class="s1">best </span><span class="s2">= </span><span class="s3">0</span>
+    <span class="s0">if </span><span class="s2">(</span><span class="s1">uniqueDaysDesc</span><span class="s2">.</span><span class="s1">isNotEmpty</span><span class="s2">()) {</span>
+        <span class="s0">val </span><span class="s1">asc </span><span class="s2">= </span><span class="s1">uniqueDaysDesc</span><span class="s2">.</span><span class="s1">sorted</span><span class="s2">()</span>
+        <span class="s0">var </span><span class="s1">run </span><span class="s2">= </span><span class="s3">1</span>
+        <span class="s1">best </span><span class="s2">= </span><span class="s3">1</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">i </span><span class="s0">in </span><span class="s3">1 </span><span class="s1">until asc</span><span class="s2">.</span><span class="s1">size</span><span class="s2">) {</span>
+            <span class="s1">run </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">asc</span><span class="s2">[</span><span class="s1">i</span><span class="s2">] == </span><span class="s1">asc</span><span class="s2">[</span><span class="s1">i </span><span class="s2">- </span><span class="s3">1</span><span class="s2">] + </span><span class="s3">1</span><span class="s2">) </span><span class="s1">run </span><span class="s2">+ </span><span class="s3">1 </span><span class="s0">else </span><span class="s3">1</span>
+            <span class="s1">best </span><span class="s2">= </span><span class="s1">max</span><span class="s2">(</span><span class="s1">best</span><span class="s2">, </span><span class="s1">run</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">return </span><span class="s1">ProgressoStreakInfo</span><span class="s2">(</span><span class="s1">current </span><span class="s2">= </span><span class="s1">current</span><span class="s2">, </span><span class="s1">best </span><span class="s2">= </span><span class="s1">best</span><span class="s2">, </span><span class="s1">trainedToday </span><span class="s2">= </span><span class="s1">trainedToday</span><span class="s2">)</span>
+<span class="s2">}</span>
+
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">buildAchievements</span><span class="s2">(</span>
+    <span class="s1">totalSessions: Int</span><span class="s2">,</span>
+    <span class="s1">totalSetsDoneAll: Int</span><span class="s2">,</span>
+    <span class="s1">currentStreak: Int</span><span class="s2">,</span>
+    <span class="s1">bestStreak: Int</span>
+<span class="s2">)</span><span class="s1">: List</span><span class="s2">&lt;</span><span class="s1">AchievementUi</span><span class="s2">&gt; {</span>
+    <span class="s0">fun </span><span class="s1">streakAchievement</span><span class="s2">(</span><span class="s1">days: Int</span><span class="s2">, </span><span class="s1">title: String</span><span class="s2">)</span><span class="s1">: AchievementUi </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s1">unlocked </span><span class="s2">= </span><span class="s1">bestStreak </span><span class="s2">&gt;= </span><span class="s1">days</span>
+        <span class="s0">val </span><span class="s1">progress </span><span class="s2">= </span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">min</span><span class="s2">(</span><span class="s1">bestStreak</span><span class="s2">, </span><span class="s1">days</span><span class="s2">)</span><span class="s0">}</span><span class="s5">/</span><span class="s0">$</span><span class="s1">days </span><span class="s5">dias&quot;</span>
+        <span class="s0">return </span><span class="s1">AchievementUi</span><span class="s2">(</span>
+            <span class="s1">title </span><span class="s2">= </span><span class="s1">title</span><span class="s2">,</span>
+            <span class="s1">description </span><span class="s2">= </span><span class="s5">&quot;Treine </span><span class="s0">$</span><span class="s1">days </span><span class="s5">dias seguidos (com descanso quando necessário).&quot;</span><span class="s2">,</span>
+            <span class="s1">unlocked </span><span class="s2">= </span><span class="s1">unlocked</span><span class="s2">,</span>
+            <span class="s1">progressText </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">unlocked</span><span class="s2">) </span><span class="s5">&quot;Concluído&quot; </span><span class="s0">else </span><span class="s1">progress</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s0">fun </span><span class="s1">countAchievement</span><span class="s2">(</span><span class="s1">target: Int</span><span class="s2">, </span><span class="s1">current: Int</span><span class="s2">, </span><span class="s1">title: String</span><span class="s2">, </span><span class="s1">desc: String</span><span class="s2">)</span><span class="s1">: AchievementUi </span><span class="s2">{</span>
+        <span class="s0">val </span><span class="s1">unlocked </span><span class="s2">= </span><span class="s1">current </span><span class="s2">&gt;= </span><span class="s1">target</span>
+        <span class="s0">val </span><span class="s1">progress </span><span class="s2">= </span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">min</span><span class="s2">(</span><span class="s1">current</span><span class="s2">, </span><span class="s1">target</span><span class="s2">)</span><span class="s0">}</span><span class="s5">/</span><span class="s0">$</span><span class="s1">target</span><span class="s5">&quot;</span>
+        <span class="s0">return </span><span class="s1">AchievementUi</span><span class="s2">(</span>
+            <span class="s1">title </span><span class="s2">= </span><span class="s1">title</span><span class="s2">,</span>
+            <span class="s1">description </span><span class="s2">= </span><span class="s1">desc</span><span class="s2">,</span>
+            <span class="s1">unlocked </span><span class="s2">= </span><span class="s1">unlocked</span><span class="s2">,</span>
+            <span class="s1">progressText </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">unlocked</span><span class="s2">) </span><span class="s5">&quot;Concluído&quot; </span><span class="s0">else </span><span class="s1">progress</span>
+        <span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s0">return </span><span class="s1">listOf</span><span class="s2">(</span>
+        <span class="s1">countAchievement</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s1">totalSessions</span><span class="s2">, </span><span class="s5">&quot;Primeiro treino&quot;</span><span class="s2">, </span><span class="s5">&quot;Finalize 1 treino.&quot;</span><span class="s2">),</span>
+        <span class="s1">streakAchievement</span><span class="s2">(</span><span class="s3">3</span><span class="s2">, </span><span class="s5">&quot;Streak 3 dias&quot;</span><span class="s2">),</span>
+        <span class="s1">streakAchievement</span><span class="s2">(</span><span class="s3">7</span><span class="s2">, </span><span class="s5">&quot;Streak 7 dias&quot;</span><span class="s2">),</span>
+        <span class="s1">streakAchievement</span><span class="s2">(</span><span class="s3">14</span><span class="s2">, </span><span class="s5">&quot;Streak 14 dias&quot;</span><span class="s2">),</span>
+        <span class="s1">streakAchievement</span><span class="s2">(</span><span class="s3">30</span><span class="s2">, </span><span class="s5">&quot;Streak 30 dias&quot;</span><span class="s2">),</span>
+        <span class="s1">countAchievement</span><span class="s2">(</span><span class="s3">10</span><span class="s2">, </span><span class="s1">totalSessions</span><span class="s2">, </span><span class="s5">&quot;10 treinos&quot;</span><span class="s2">, </span><span class="s5">&quot;Finalize 10 treinos.&quot;</span><span class="s2">),</span>
+        <span class="s1">countAchievement</span><span class="s2">(</span><span class="s3">50</span><span class="s2">, </span><span class="s1">totalSetsDoneAll</span><span class="s2">, </span><span class="s5">&quot;50 séries concluídas&quot;</span><span class="s2">, </span><span class="s5">&quot;Conclua 50 séries no total (no seu ritmo).&quot;</span><span class="s2">),</span>
+        <span class="s1">AchievementUi</span><span class="s2">(</span>
+            <span class="s1">title </span><span class="s2">= </span><span class="s5">&quot;Não pulei hoje&quot;</span><span class="s2">,</span>
+            <span class="s1">description </span><span class="s2">= </span><span class="s5">&quot;Treine hoje para manter a sequência (ou descanse se o corpo pedir).&quot;</span><span class="s2">,</span>
+            <span class="s1">unlocked </span><span class="s2">= </span><span class="s1">currentStreak </span><span class="s2">&gt; </span><span class="s3">0</span><span class="s2">,</span>
+            <span class="s1">progressText </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">currentStreak </span><span class="s2">&gt; </span><span class="s3">0</span><span class="s2">) </span><span class="s5">&quot;Concluído&quot; </span><span class="s0">else </span><span class="s5">&quot;Pendente&quot;</span>
+        <span class="s2">)</span>
+    <span class="s2">)</span>
+<span class="s2">}</span>
+
+<span class="s4">// -------------------- UI --------------------</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">ProgressoScreen</span><span class="s2">() {</span>
+    <span class="s0">val </span><span class="s1">vm: ProgressoViewModel </span><span class="s2">= </span><span class="s1">viewModel</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">state by vm</span><span class="s2">.</span><span class="s1">uiState</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+
+    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxSize</span><span class="s2">().</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">16</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Progresso&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s1">LevelCard</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">levelInfo</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">StreakCard</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">streak</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">MissionCard</span><span class="s2">(</span>
+            <span class="s1">mission </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">mission</span><span class="s2">,</span>
+            <span class="s1">onDone </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">markMissionDone</span><span class="s2">() },</span>
+            <span class="s1">onUndo </span><span class="s2">= { </span><span class="s1">vm</span><span class="s2">.</span><span class="s1">undoMissionDone</span><span class="s2">() }</span>
+        <span class="s2">)</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Conquistas&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">AchievementsList</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">achievements</span><span class="s2">)</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+        <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Histórico&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">sessions</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Ainda não há histórico.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Finalize um treino para ele aparecer aqui.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s0">return</span>
+        <span class="s2">}</span>
+
+        <span class="s1">LazyColumn</span><span class="s2">(</span><span class="s1">verticalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">items</span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">sessions</span><span class="s2">, </span><span class="s1">key </span><span class="s2">= { </span><span class="s1">it</span><span class="s2">.</span><span class="s1">id </span><span class="s2">}) { </span><span class="s1">s </span><span class="s2">-&gt;</span>
+                <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                        <span class="s1">Row</span><span class="s2">(</span>
+                            <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                            <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+                        <span class="s2">) {</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s1">s</span><span class="s2">.</span><span class="s1">dateText</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s1">s</span><span class="s2">.</span><span class="s1">durationText</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                        <span class="s2">}</span>
+
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">s</span><span class="s2">.</span><span class="s1">workoutName</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+                        <span class="s1">Row</span><span class="s2">(</span>
+                            <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                            <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+                        <span class="s2">) {</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s1">s</span><span class="s2">.</span><span class="s1">setsText</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;+</span><span class="s0">${</span><span class="s1">s</span><span class="s2">.</span><span class="s1">xpGained</span><span class="s0">} </span><span class="s5">XP&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">LevelCard</span><span class="s2">(</span><span class="s1">level: LevelInfo</span><span class="s2">) {</span>
+    <span class="s0">val </span><span class="s1">progress </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">level</span><span class="s2">.</span><span class="s1">xpForNext </span><span class="s2">&lt;= </span><span class="s3">0</span><span class="s2">) </span><span class="s3">0f </span><span class="s0">else </span><span class="s1">level</span><span class="s2">.</span><span class="s1">xpInLevel</span><span class="s2">.</span><span class="s1">toFloat</span><span class="s2">() / </span><span class="s1">level</span><span class="s2">.</span><span class="s1">xpForNext</span><span class="s2">.</span><span class="s1">toFloat</span><span class="s2">()</span>
+
+    <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+        <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">Row</span><span class="s2">(</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+            <span class="s2">) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Nível </span><span class="s0">${</span><span class="s1">level</span><span class="s2">.</span><span class="s1">level</span><span class="s0">}</span><span class="s5">&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">level</span><span class="s2">.</span><span class="s1">totalXp</span><span class="s0">} </span><span class="s5">XP&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">LinearProgressIndicator</span><span class="s2">(</span>
+                <span class="s1">progress </span><span class="s2">= { </span><span class="s1">progress</span><span class="s2">.</span><span class="s1">coerceIn</span><span class="s2">(</span><span class="s3">0f</span><span class="s2">, </span><span class="s3">1f</span><span class="s2">) },</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+            <span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;</span><span class="s0">${</span><span class="s1">level</span><span class="s2">.</span><span class="s1">xpInLevel</span><span class="s0">}</span><span class="s5">/</span><span class="s0">${</span><span class="s1">level</span><span class="s2">.</span><span class="s1">xpForNext</span><span class="s0">} </span><span class="s5">XP para o próximo nível&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">StreakCard</span><span class="s2">(</span><span class="s1">streak: ProgressoStreakInfo</span><span class="s2">) {</span>
+    <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+        <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Streak&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+            <span class="s1">Row</span><span class="s2">(</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+            <span class="s2">) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Atual: </span><span class="s0">${</span><span class="s1">streak</span><span class="s2">.</span><span class="s1">current</span><span class="s0">} </span><span class="s5">dias&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Melhor: </span><span class="s0">${</span><span class="s1">streak</span><span class="s2">.</span><span class="s1">best</span><span class="s0">} </span><span class="s5">dias&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">streak</span><span class="s2">.</span><span class="s1">trainedToday</span><span class="s2">) </span><span class="s5">&quot;Você treinou hoje. Excelente. Priorize recuperação.&quot;</span>
+                <span class="s0">else </span><span class="s5">&quot;Ainda não treinou hoje. Faça o primeiro passo — com técnica e segurança.&quot;</span><span class="s2">,</span>
+                <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span>
+            <span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">MissionCard</span><span class="s2">(</span>
+    <span class="s1">mission: MissionUi</span><span class="s2">,</span>
+    <span class="s1">onDone: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onUndo: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span>
+<span class="s2">) {</span>
+    <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+        <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">Row</span><span class="s2">(</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+            <span class="s2">) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Missão de hoje&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s0">if </span><span class="s2">(</span><span class="s1">mission</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">) </span><span class="s5">&quot;Concluída&quot; </span><span class="s0">else </span><span class="s5">&quot;Pendente&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s1">mission</span><span class="s2">.</span><span class="s1">title</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s1">mission</span><span class="s2">.</span><span class="s1">description</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+
+            <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+            <span class="s0">if </span><span class="s2">(!</span><span class="s1">mission</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">) {</span>
+                <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onDone</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Marcar como concluída&quot;</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onUndo</span><span class="s2">, </span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s5">&quot;Desfazer&quot;</span><span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">@Composable</span>
+<span class="s1">private </span><span class="s0">fun </span><span class="s1">AchievementsList</span><span class="s2">(</span><span class="s1">items: List</span><span class="s2">&lt;</span><span class="s1">AchievementUi</span><span class="s2">&gt;) {</span>
+    <span class="s1">Column</span><span class="s2">(</span><span class="s1">verticalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">items</span><span class="s2">.</span><span class="s1">forEach </span><span class="s2">{ </span><span class="s1">a </span><span class="s2">-&gt;</span>
+            <span class="s1">Card</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                    <span class="s1">Row</span><span class="s2">(</span>
+                        <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+                        <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+                    <span class="s2">) {</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">a</span><span class="s2">.</span><span class="s1">title</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s0">if </span><span class="s2">(</span><span class="s1">a</span><span class="s2">.</span><span class="s1">unlocked</span><span class="s2">) </span><span class="s5">&quot;Desbloqueado&quot; </span><span class="s0">else </span><span class="s5">&quot;Bloqueado&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                    <span class="s2">}</span>
+
+                    <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                    <span class="s1">Text</span><span class="s2">(</span><span class="s1">a</span><span class="s2">.</span><span class="s1">description</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">a</span><span class="s2">.</span><span class="s1">progressText </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">6</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">a</span><span class="s2">.</span><span class="s1">progressText</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

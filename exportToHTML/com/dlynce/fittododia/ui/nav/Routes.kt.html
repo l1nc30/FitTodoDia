@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>Routes.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Routes.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">nav</span>
+
+<span class="s1">sealed </span><span class="s0">class </span><span class="s1">Route</span><span class="s2">(</span><span class="s0">val </span><span class="s1">path: String</span><span class="s2">) {</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">Home : Route</span><span class="s2">(</span><span class="s3">&quot;home&quot;</span><span class="s2">)</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">Agenda : Route</span><span class="s2">(</span><span class="s3">&quot;agenda&quot;</span><span class="s2">)</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">Treino : Route</span><span class="s2">(</span><span class="s3">&quot;treino&quot;</span><span class="s2">)</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">Progresso : Route</span><span class="s2">(</span><span class="s3">&quot;progresso&quot;</span><span class="s2">)</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">Perfil : Route</span><span class="s2">(</span><span class="s3">&quot;perfil&quot;</span><span class="s2">)</span>
+
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">EditWorkout : Route</span><span class="s2">(</span><span class="s3">&quot;edit_workout/{dayId}&quot;</span><span class="s2">) {</span>
+        <span class="s0">fun </span><span class="s1">create</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">) = </span><span class="s3">&quot;edit_workout/</span><span class="s0">$</span><span class="s1">dayId</span><span class="s3">&quot;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">ExerciseLibrary : Route</span><span class="s2">(</span><span class="s3">&quot;exercise_library/{dayId}&quot;</span><span class="s2">) {</span>
+        <span class="s0">fun </span><span class="s1">create</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">) = </span><span class="s3">&quot;exercise_library/</span><span class="s0">$</span><span class="s1">dayId</span><span class="s3">&quot;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">AddExercise : Route</span><span class="s2">(</span><span class="s3">&quot;add_exercise/{dayId}/{exerciseId}&quot;</span><span class="s2">) {</span>
+        <span class="s0">fun </span><span class="s1">create</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">, </span><span class="s1">exerciseId: Long</span><span class="s2">) = </span><span class="s3">&quot;add_exercise/</span><span class="s0">$</span><span class="s1">dayId</span><span class="s3">/</span><span class="s0">$</span><span class="s1">exerciseId</span><span class="s3">&quot;</span>
+    <span class="s2">}</span>
+
+    <span class="s4">// ✅ NOVO: editar item já adicionado (workoutExerciseId)</span>
+    <span class="s1">data </span><span class="s0">object </span><span class="s1">EditWorkoutItem : Route</span><span class="s2">(</span><span class="s3">&quot;edit_workout_item/{dayId}/{rowId}&quot;</span><span class="s2">) {</span>
+        <span class="s0">fun </span><span class="s1">create</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">, </span><span class="s1">rowId: Long</span><span class="s2">) = </span><span class="s3">&quot;edit_workout_item/</span><span class="s0">$</span><span class="s1">dayId</span><span class="s3">/</span><span class="s0">$</span><span class="s1">rowId</span><span class="s3">&quot;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

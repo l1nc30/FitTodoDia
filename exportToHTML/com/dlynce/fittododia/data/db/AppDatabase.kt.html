@@ -1,0 +1,191 @@
+<html>
+<head>
+<title>AppDatabase.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AppDatabase.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Context</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Database</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Room</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">RoomDatabase</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">migration</span><span class="s2">.</span><span class="s1">Migration</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">sqlite</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">SupportSQLiteDatabase</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span><span class="s2">.*</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.*</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">CoroutineScope</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">Dispatchers</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">launch</span>
+
+<span class="s1">@Database</span><span class="s2">(</span>
+    <span class="s1">entities </span><span class="s2">= [</span>
+        <span class="s1">WeekDayEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">WorkoutEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">ExerciseEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">WorkoutExerciseEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">WorkoutLogEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">StreakEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">SettingsEntity::</span><span class="s0">class</span><span class="s2">,</span>
+
+        <span class="s1">WorkoutSessionEntity::</span><span class="s0">class</span><span class="s2">,</span>
+        <span class="s1">WorkoutSessionExerciseEntity::</span><span class="s0">class</span><span class="s2">,</span>
+
+        <span class="s1">DailyMissionEntity::</span><span class="s0">class</span>
+    <span class="s2">],</span>
+    <span class="s1">version </span><span class="s2">= </span><span class="s3">3</span><span class="s2">,</span>
+    <span class="s1">exportSchema </span><span class="s2">= </span><span class="s0">true</span>
+<span class="s2">)</span>
+<span class="s1">abstract </span><span class="s0">class </span><span class="s1">AppDatabase : RoomDatabase</span><span class="s2">() {</span>
+
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">weekDayDao</span><span class="s2">()</span><span class="s1">: WeekDayDao</span>
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">workoutDao</span><span class="s2">()</span><span class="s1">: WorkoutDao</span>
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">exerciseDao</span><span class="s2">()</span><span class="s1">: ExerciseDao</span>
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">workoutExerciseDao</span><span class="s2">()</span><span class="s1">: WorkoutExerciseDao</span>
+
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">workoutSessionDao</span><span class="s2">()</span><span class="s1">: WorkoutSessionDao</span>
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">dailyMissionDao</span><span class="s2">()</span><span class="s1">: DailyMissionDao</span>
+
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">streakDao</span><span class="s2">()</span><span class="s1">: StreakDao</span>
+    <span class="s1">abstract </span><span class="s0">fun </span><span class="s1">settingsDao</span><span class="s2">()</span><span class="s1">: SettingsDao</span>
+
+    <span class="s1">companion </span><span class="s0">object </span><span class="s2">{</span>
+        <span class="s1">@Volatile private </span><span class="s0">var </span><span class="s1">INSTANCE: AppDatabase? </span><span class="s2">= </span><span class="s0">null</span>
+
+        <span class="s1">private </span><span class="s0">val </span><span class="s1">MIGRATION_1_2 </span><span class="s2">= </span><span class="s0">object </span><span class="s1">: Migration</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s3">2</span><span class="s2">) {</span>
+            <span class="s1">override </span><span class="s0">fun </span><span class="s1">migrate</span><span class="s2">(</span><span class="s1">db: SupportSQLiteDatabase</span><span class="s2">) {</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;&quot;&quot;</span>
+                    <span class="s4">CREATE TABLE IF NOT EXISTS workout_session (</span>
+                        <span class="s4">id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,</span>
+                        <span class="s4">workoutId INTEGER NOT NULL,</span>
+                        <span class="s4">weekDayId INTEGER NOT NULL,</span>
+                        <span class="s4">dateEpochDay INTEGER NOT NULL,</span>
+                        <span class="s4">startedAtEpochMs INTEGER NOT NULL,</span>
+                        <span class="s4">durationSeconds INTEGER NOT NULL,</span>
+                        <span class="s4">workoutNameSnapshot TEXT NOT NULL,</span>
+                        <span class="s4">totalExercises INTEGER NOT NULL,</span>
+                        <span class="s4">totalSetsPlanned INTEGER NOT NULL,</span>
+                        <span class="s4">totalSetsDone INTEGER NOT NULL</span>
+                    <span class="s4">)</span>
+                <span class="s4">&quot;&quot;&quot;</span><span class="s2">.</span><span class="s1">trimIndent</span><span class="s2">())</span>
+
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;CREATE INDEX IF NOT EXISTS index_workout_session_dateEpochDay ON workout_session(dateEpochDay)&quot;</span><span class="s2">)</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;CREATE INDEX IF NOT EXISTS index_workout_session_workoutId ON workout_session(workoutId)&quot;</span><span class="s2">)</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;CREATE INDEX IF NOT EXISTS index_workout_session_weekDayId ON workout_session(weekDayId)&quot;</span><span class="s2">)</span>
+
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;&quot;&quot;</span>
+                    <span class="s4">CREATE TABLE IF NOT EXISTS workout_session_exercise (</span>
+                        <span class="s4">id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,</span>
+                        <span class="s4">sessionId INTEGER NOT NULL,</span>
+                        <span class="s4">orderIndex INTEGER NOT NULL,</span>
+                        <span class="s4">exerciseNameSnapshot TEXT NOT NULL,</span>
+                        <span class="s4">muscleGroupSnapshot TEXT NOT NULL,</span>
+                        <span class="s4">setsPlanned INTEGER NOT NULL,</span>
+                        <span class="s4">setsDone INTEGER NOT NULL,</span>
+                        <span class="s4">repsSnapshot TEXT NOT NULL,</span>
+                        <span class="s4">restSecondsSnapshot INTEGER,</span>
+                        <span class="s4">FOREIGN KEY(sessionId) REFERENCES workout_session(id) ON DELETE CASCADE</span>
+                    <span class="s4">)</span>
+                <span class="s4">&quot;&quot;&quot;</span><span class="s2">.</span><span class="s1">trimIndent</span><span class="s2">())</span>
+
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;CREATE INDEX IF NOT EXISTS index_workout_session_exercise_sessionId ON workout_session_exercise(sessionId)&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s1">private </span><span class="s0">val </span><span class="s1">MIGRATION_2_3 </span><span class="s2">= </span><span class="s0">object </span><span class="s1">: Migration</span><span class="s2">(</span><span class="s3">2</span><span class="s2">, </span><span class="s3">3</span><span class="s2">) {</span>
+            <span class="s1">override </span><span class="s0">fun </span><span class="s1">migrate</span><span class="s2">(</span><span class="s1">db: SupportSQLiteDatabase</span><span class="s2">) {</span>
+                <span class="s1">db</span><span class="s2">.</span><span class="s1">execSQL</span><span class="s2">(</span><span class="s4">&quot;&quot;&quot;</span>
+                    <span class="s4">CREATE TABLE IF NOT EXISTS daily_mission (</span>
+                        <span class="s4">dateEpochDay INTEGER PRIMARY KEY NOT NULL,</span>
+                        <span class="s4">missionKey TEXT NOT NULL,</span>
+                        <span class="s4">completed INTEGER NOT NULL</span>
+                    <span class="s4">)</span>
+                <span class="s4">&quot;&quot;&quot;</span><span class="s2">.</span><span class="s1">trimIndent</span><span class="s2">())</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s0">fun </span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">context: Context</span><span class="s2">)</span><span class="s1">: AppDatabase </span><span class="s2">{</span>
+            <span class="s0">return </span><span class="s1">INSTANCE ?: synchronized</span><span class="s2">(</span><span class="s0">this</span><span class="s2">) {</span>
+                <span class="s0">val </span><span class="s1">instance </span><span class="s2">= </span><span class="s1">Room</span><span class="s2">.</span><span class="s1">databaseBuilder</span><span class="s2">(</span>
+                    <span class="s1">context</span><span class="s2">.</span><span class="s1">applicationContext</span><span class="s2">,</span>
+                    <span class="s1">AppDatabase::</span><span class="s0">class</span><span class="s2">.</span><span class="s1">java</span><span class="s2">,</span>
+                    <span class="s4">&quot;fittododia.db&quot;</span>
+                <span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">addMigrations</span><span class="s2">(</span><span class="s1">MIGRATION_1_2</span><span class="s2">, </span><span class="s1">MIGRATION_2_3</span><span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">addCallback</span><span class="s2">(</span><span class="s1">SeedCallback</span><span class="s2">(</span><span class="s1">context</span><span class="s2">.</span><span class="s1">applicationContext</span><span class="s2">))</span>
+                    <span class="s2">.</span><span class="s1">build</span><span class="s2">()</span>
+
+                <span class="s1">INSTANCE </span><span class="s2">= </span><span class="s1">instance</span>
+                <span class="s1">instance</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">class </span><span class="s1">SeedCallback</span><span class="s2">(</span>
+        <span class="s1">private </span><span class="s0">val </span><span class="s1">appContext: Context</span>
+    <span class="s2">) </span><span class="s1">: Callback</span><span class="s2">() {</span>
+
+        <span class="s1">override </span><span class="s0">fun </span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">db: SupportSQLiteDatabase</span><span class="s2">) {</span>
+            <span class="s0">super</span><span class="s2">.</span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">db</span><span class="s2">)</span>
+
+            <span class="s1">CoroutineScope</span><span class="s2">(</span><span class="s1">Dispatchers</span><span class="s2">.</span><span class="s1">IO</span><span class="s2">).</span><span class="s1">launch </span><span class="s2">{</span>
+                <span class="s0">val </span><span class="s1">database </span><span class="s2">= </span><span class="s1">getInstance</span><span class="s2">(</span><span class="s1">appContext</span><span class="s2">)</span>
+
+                <span class="s1">database</span><span class="s2">.</span><span class="s1">weekDayDao</span><span class="s2">().</span><span class="s1">upsertAll</span><span class="s2">(</span>
+                    <span class="s1">listOf</span><span class="s2">(</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s4">&quot;Segunda&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">2</span><span class="s2">, </span><span class="s4">&quot;Terça&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">3</span><span class="s2">, </span><span class="s4">&quot;Quarta&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">4</span><span class="s2">, </span><span class="s4">&quot;Quinta&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">5</span><span class="s2">, </span><span class="s4">&quot;Sexta&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">6</span><span class="s2">, </span><span class="s4">&quot;Sábado&quot;</span><span class="s2">),</span>
+                        <span class="s1">WeekDayEntity</span><span class="s2">(</span><span class="s3">7</span><span class="s2">, </span><span class="s4">&quot;Domingo&quot;</span><span class="s2">)</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+
+                <span class="s1">database</span><span class="s2">.</span><span class="s1">streakDao</span><span class="s2">().</span><span class="s1">upsert</span><span class="s2">(</span>
+                    <span class="s1">StreakEntity</span><span class="s2">(</span>
+                        <span class="s1">id </span><span class="s2">= </span><span class="s3">1</span><span class="s2">,</span>
+                        <span class="s1">currentStreak </span><span class="s2">= </span><span class="s3">0</span><span class="s2">,</span>
+                        <span class="s1">lastWorkoutEpochDay </span><span class="s2">= </span><span class="s0">null</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+
+                <span class="s1">database</span><span class="s2">.</span><span class="s1">settingsDao</span><span class="s2">().</span><span class="s1">upsert</span><span class="s2">(</span>
+                    <span class="s1">SettingsEntity</span><span class="s2">(</span>
+                        <span class="s1">id </span><span class="s2">= </span><span class="s3">1</span><span class="s2">,</span>
+                        <span class="s1">adsRemoved </span><span class="s2">= </span><span class="s0">false</span><span class="s2">,</span>
+                        <span class="s1">reminderEnabled </span><span class="s2">= </span><span class="s0">false</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+
+                <span class="s1">database</span><span class="s2">.</span><span class="s1">exerciseDao</span><span class="s2">().</span><span class="s1">upsertAll</span><span class="s2">(</span>
+                    <span class="s1">listOf</span><span class="s2">(</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Flexão de braço&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Peito&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/pushup.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Agachamento livre&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Pernas&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/squat.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Prancha&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Core&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/plank.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Remada unilateral&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Costas&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/one_arm_row.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Desenvolvimento com halteres&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Ombros&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/dumbbell_press.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Rosca direta&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Bíceps&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/biceps_curl.gif&quot;</span><span class="s2">),</span>
+                        <span class="s1">ExerciseEntity</span><span class="s2">(</span><span class="s1">name </span><span class="s2">= </span><span class="s4">&quot;Tríceps testa&quot;</span><span class="s2">, </span><span class="s1">muscleGroup </span><span class="s2">= </span><span class="s4">&quot;Tríceps&quot;</span><span class="s2">, </span><span class="s1">gifAssetPath </span><span class="s2">= </span><span class="s4">&quot;gifs/skullcrusher.gif&quot;</span><span class="s2">)</span>
+                    <span class="s2">)</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

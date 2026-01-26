@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>MainActivity.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MainActivity.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">Manifest</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">pm</span><span class="s2">.</span><span class="s1">PackageManager</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Build</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Bundle</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">ComponentActivity</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">setContent</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">result</span><span class="s2">.</span><span class="s1">contract</span><span class="s2">.</span><span class="s1">ActivityResultContracts</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">MaterialTheme</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">Surface</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">core</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">ContextCompat</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">notifications</span><span class="s2">.</span><span class="s1">ReminderScheduler</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">nav</span><span class="s2">.</span><span class="s1">AppNav</span>
+
+<span class="s0">class </span><span class="s1">MainActivity : ComponentActivity</span><span class="s2">() {</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">requestNotifPermission </span><span class="s2">= </span><span class="s1">registerForActivityResult</span><span class="s2">(</span>
+        <span class="s1">ActivityResultContracts</span><span class="s2">.</span><span class="s1">RequestPermission</span><span class="s2">()</span>
+    <span class="s2">) { </span><span class="s1">granted </span><span class="s2">-&gt;</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">granted</span><span class="s2">) {</span>
+            <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s3">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s3">0</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">savedInstanceState: Bundle?</span><span class="s2">) {</span>
+        <span class="s0">super</span><span class="s2">.</span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">savedInstanceState</span><span class="s2">)</span>
+
+        <span class="s1">ensureNotificationPermissionAndSchedule</span><span class="s2">()</span>
+
+        <span class="s1">setContent </span><span class="s2">{</span>
+            <span class="s1">MaterialTheme </span><span class="s2">{</span>
+                <span class="s1">Surface </span><span class="s2">{</span>
+                    <span class="s1">AppNav</span><span class="s2">()</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">ensureNotificationPermissionAndSchedule</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s3">33</span><span class="s2">) {</span>
+            <span class="s0">val </span><span class="s1">granted </span><span class="s2">= </span><span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span>
+                <span class="s0">this</span><span class="s2">,</span>
+                <span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span>
+            <span class="s2">) == </span><span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED</span>
+
+            <span class="s0">if </span><span class="s2">(!</span><span class="s1">granted</span><span class="s2">) {</span>
+                <span class="s1">requestNotifPermission</span><span class="s2">.</span><span class="s1">launch</span><span class="s2">(</span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">POST_NOTIFICATIONS</span><span class="s2">)</span>
+                <span class="s0">return</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s4">// Android &lt;= 12 ou permissão já concedida</span>
+        <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s3">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s3">0</span><span class="s2">)</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

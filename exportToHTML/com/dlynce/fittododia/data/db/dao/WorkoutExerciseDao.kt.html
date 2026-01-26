@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>WorkoutExerciseDao.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+WorkoutExerciseDao.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Dao</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Insert</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">OnConflictStrategy</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Query</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Transaction</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">WorkoutExerciseEntity</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">Flow</span>
+
+<span class="s1">@Dao</span>
+<span class="s0">interface </span><span class="s1">WorkoutExerciseDao </span><span class="s2">{</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;SELECT workoutId FROM workout_exercise WHERE id = :rowId LIMIT 1&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">getWorkoutIdByRowId</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">)</span><span class="s1">: Long?</span>
+
+    <span class="s1">@Transaction</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">deleteAndReorderByRowId</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">workoutId </span><span class="s2">= </span><span class="s1">getWorkoutIdByRowId</span><span class="s2">(</span><span class="s1">rowId</span><span class="s2">) </span><span class="s1">?: </span><span class="s0">return</span>
+        <span class="s1">deleteById</span><span class="s2">(</span><span class="s1">rowId</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">ids </span><span class="s2">= </span><span class="s1">getIdsByWorkoutOrdered</span><span class="s2">(</span><span class="s1">workoutId</span><span class="s2">)</span>
+        <span class="s1">ids</span><span class="s2">.</span><span class="s1">forEachIndexed </span><span class="s2">{ </span><span class="s1">idx</span><span class="s2">, </span><span class="s1">id </span><span class="s2">-&gt;</span>
+            <span class="s1">updateOrderIndex</span><span class="s2">(</span><span class="s1">id</span><span class="s2">, </span><span class="s1">idx</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+
+    <span class="s1">@Insert</span><span class="s2">(</span><span class="s1">onConflict </span><span class="s2">= </span><span class="s1">OnConflictStrategy</span><span class="s2">.</span><span class="s1">REPLACE</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">insert</span><span class="s2">(</span><span class="s1">entity: WorkoutExerciseEntity</span><span class="s2">)</span><span class="s1">: Long</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;SELECT COALESCE(MAX(orderIndex), -1) FROM workout_exercise WHERE workoutId = :workoutId&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">getMaxOrderIndex</span><span class="s2">(</span><span class="s1">workoutId: Long</span><span class="s2">)</span><span class="s1">: Int</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;&quot;&quot;</span>
+        <span class="s3">SELECT we.id as id,</span>
+               <span class="s3">e.name as exerciseName,</span>
+               <span class="s3">e.muscleGroup as muscleGroup,</span>
+               <span class="s3">e.gifAssetPath as gifAssetPath,</span>
+               <span class="s3">we.sets as sets,</span>
+               <span class="s3">we.reps as reps,</span>
+               <span class="s3">we.restSeconds as restSeconds,</span>
+               <span class="s3">we.orderIndex as orderIndex</span>
+        <span class="s3">FROM workout_exercise we</span>
+        <span class="s3">JOIN exercise e ON e.id = we.exerciseId</span>
+        <span class="s3">WHERE we.workoutId = :workoutId</span>
+        <span class="s3">ORDER BY we.orderIndex ASC</span>
+    <span class="s3">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s0">fun </span><span class="s1">observeRowsByWorkout</span><span class="s2">(</span><span class="s1">workoutId: Long</span><span class="s2">)</span><span class="s1">: Flow</span><span class="s2">&lt;</span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow</span><span class="s2">&gt;&gt;</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;DELETE FROM workout_exercise WHERE workoutId = :workoutId&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">deleteByWorkout</span><span class="s2">(</span><span class="s1">workoutId: Long</span><span class="s2">)</span>
+
+    <span class="s4">// ✅ observar 1 item por rowId (tela de edição)</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;&quot;&quot;</span>
+        <span class="s3">SELECT we.id as id,</span>
+               <span class="s3">e.name as exerciseName,</span>
+               <span class="s3">e.muscleGroup as muscleGroup,</span>
+               <span class="s3">e.gifAssetPath as gifAssetPath,</span>
+               <span class="s3">we.sets as sets,</span>
+               <span class="s3">we.reps as reps,</span>
+               <span class="s3">we.restSeconds as restSeconds,</span>
+               <span class="s3">we.orderIndex as orderIndex</span>
+        <span class="s3">FROM workout_exercise we</span>
+        <span class="s3">JOIN exercise e ON e.id = we.exerciseId</span>
+        <span class="s3">WHERE we.id = :rowId</span>
+        <span class="s3">LIMIT 1</span>
+    <span class="s3">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s0">fun </span><span class="s1">observeRowById</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">)</span><span class="s1">: Flow</span><span class="s2">&lt;</span><span class="s1">WorkoutExerciseRow?</span><span class="s2">&gt;</span>
+
+    <span class="s4">// ✅ update dos campos editáveis</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;&quot;&quot;</span>
+        <span class="s3">UPDATE workout_exercise</span>
+        <span class="s3">SET sets = :sets,</span>
+            <span class="s3">reps = :reps,</span>
+            <span class="s3">restSeconds = :restSeconds</span>
+        <span class="s3">WHERE id = :rowId</span>
+    <span class="s3">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">updateRow</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">, </span><span class="s1">sets: Int</span><span class="s2">, </span><span class="s1">reps: String</span><span class="s2">, </span><span class="s1">restSeconds: Int?</span><span class="s2">)</span>
+
+    <span class="s4">// ✅ delete por rowId</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;DELETE FROM workout_exercise WHERE id = :rowId&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">deleteById</span><span class="s2">(</span><span class="s1">rowId: Long</span><span class="s2">)</span>
+
+    <span class="s4">// --- Reordenação ---</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;&quot;&quot;</span>
+        <span class="s3">SELECT id FROM workout_exercise</span>
+        <span class="s3">WHERE workoutId = :workoutId</span>
+        <span class="s3">ORDER BY orderIndex ASC</span>
+    <span class="s3">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">getIdsByWorkoutOrdered</span><span class="s2">(</span><span class="s1">workoutId: Long</span><span class="s2">)</span><span class="s1">: List</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">&gt;</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;UPDATE workout_exercise SET orderIndex = :orderIndex WHERE id = :id&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">updateOrderIndex</span><span class="s2">(</span><span class="s1">id: Long</span><span class="s2">, </span><span class="s1">orderIndex: Int</span><span class="s2">)</span>
+
+    <span class="s1">@Transaction</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">deleteAndReorder</span><span class="s2">(</span><span class="s1">workoutId: Long</span><span class="s2">, </span><span class="s1">rowId: Long</span><span class="s2">) {</span>
+        <span class="s1">deleteById</span><span class="s2">(</span><span class="s1">rowId</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">ids </span><span class="s2">= </span><span class="s1">getIdsByWorkoutOrdered</span><span class="s2">(</span><span class="s1">workoutId</span><span class="s2">)</span>
+        <span class="s1">ids</span><span class="s2">.</span><span class="s1">forEachIndexed </span><span class="s2">{ </span><span class="s1">idx</span><span class="s2">, </span><span class="s1">id </span><span class="s2">-&gt;</span>
+            <span class="s1">updateOrderIndex</span><span class="s2">(</span><span class="s1">id</span><span class="s2">, </span><span class="s1">idx</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

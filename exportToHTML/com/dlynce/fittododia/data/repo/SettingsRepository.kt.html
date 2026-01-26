@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>SettingsRepository.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SettingsRepository.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">repo</span>
+
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span><span class="s2">.</span><span class="s1">SettingsDao</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">SettingsEntity</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">Flow</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">map</span>
+
+<span class="s0">class </span><span class="s1">SettingsRepository</span><span class="s2">(</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">dao: SettingsDao</span>
+<span class="s2">) {</span>
+    <span class="s0">fun </span><span class="s1">observeSettings</span><span class="s2">()</span><span class="s1">: Flow</span><span class="s2">&lt;</span><span class="s1">SettingsEntity</span><span class="s2">&gt; =</span>
+        <span class="s1">dao</span><span class="s2">.</span><span class="s1">observeSettings</span><span class="s2">()</span>
+            <span class="s2">.</span><span class="s1">map </span><span class="s2">{ </span><span class="s1">it ?: SettingsEntity</span><span class="s2">(</span><span class="s1">id </span><span class="s2">= </span><span class="s3">1</span><span class="s2">, </span><span class="s1">adsRemoved </span><span class="s2">= </span><span class="s0">false</span><span class="s2">, </span><span class="s1">reminderEnabled </span><span class="s2">= </span><span class="s0">false</span><span class="s2">) }</span>
+
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">setReminderEnabled</span><span class="s2">(</span><span class="s1">enabled: Boolean</span><span class="s2">) {</span>
+        <span class="s0">val </span><span class="s1">current </span><span class="s2">= </span><span class="s1">dao</span><span class="s2">.</span><span class="s1">getSettings</span><span class="s2">() </span><span class="s1">?: SettingsEntity</span><span class="s2">(</span><span class="s1">id </span><span class="s2">= </span><span class="s3">1</span><span class="s2">, </span><span class="s1">adsRemoved </span><span class="s2">= </span><span class="s0">false</span><span class="s2">, </span><span class="s1">reminderEnabled </span><span class="s2">= </span><span class="s0">false</span><span class="s2">)</span>
+        <span class="s1">dao</span><span class="s2">.</span><span class="s1">upsert</span><span class="s2">(</span><span class="s1">current</span><span class="s2">.</span><span class="s1">copy</span><span class="s2">(</span><span class="s1">reminderEnabled </span><span class="s2">= </span><span class="s1">enabled</span><span class="s2">))</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

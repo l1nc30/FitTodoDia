@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>WorkoutDao.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+.s5 { color: #5f826b; font-style: italic;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+WorkoutDao.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Dao</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Insert</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">OnConflictStrategy</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Query</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Update</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">WorkoutEntity</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">Flow</span>
+
+<span class="s1">@Dao</span>
+<span class="s0">interface </span><span class="s1">WorkoutDao </span><span class="s2">{</span>
+
+    <span class="s3">// IMPORTANTE: sempre pegar um único por dia</span>
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s4">&quot;&quot;&quot;</span>
+        <span class="s4">SELECT * FROM workout</span>
+        <span class="s4">WHERE weekDayId = :dayId</span>
+        <span class="s4">ORDER BY id DESC</span>
+        <span class="s4">LIMIT 1</span>
+    <span class="s4">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">getWorkoutByDay</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">)</span><span class="s1">: WorkoutEntity?</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s4">&quot;&quot;&quot;</span>
+        <span class="s4">SELECT * FROM workout</span>
+        <span class="s4">WHERE weekDayId = :dayId</span>
+        <span class="s4">ORDER BY id DESC</span>
+        <span class="s4">LIMIT 1</span>
+    <span class="s4">&quot;&quot;&quot;</span><span class="s2">)</span>
+    <span class="s0">fun </span><span class="s1">observeWorkoutByDay</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">)</span><span class="s1">: Flow</span><span class="s2">&lt;</span><span class="s1">WorkoutEntity?</span><span class="s2">&gt;</span>
+
+    <span class="s3">// Insert SEM REPLACE (para não disparar delete/cascade)</span>
+    <span class="s1">@Insert</span><span class="s2">(</span><span class="s1">onConflict </span><span class="s2">= </span><span class="s1">OnConflictStrategy</span><span class="s2">.</span><span class="s1">ABORT</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">insert</span><span class="s2">(</span><span class="s1">entity: WorkoutEntity</span><span class="s2">)</span><span class="s1">: Long</span>
+
+    <span class="s3">// Update real (não apaga filhos)</span>
+    <span class="s1">@Update</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">update</span><span class="s2">(</span><span class="s1">entity: WorkoutEntity</span><span class="s2">)</span>
+
+    <span class="s5">/**</span>
+     <span class="s5">* Upsert seguro:</span>
+     <span class="s5">* - Se id == 0 -&gt; insert e retorna novo id</span>
+     <span class="s5">* - Se id != 0 -&gt; update e retorna o mesmo id</span>
+     <span class="s5">*/</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">upsert</span><span class="s2">(</span><span class="s1">entity: WorkoutEntity</span><span class="s2">)</span><span class="s1">: Long </span><span class="s2">{</span>
+        <span class="s0">return if </span><span class="s2">(</span><span class="s1">entity</span><span class="s2">.</span><span class="s1">id </span><span class="s2">== </span><span class="s6">0L</span><span class="s2">) {</span>
+            <span class="s1">insert</span><span class="s2">(</span><span class="s1">entity</span><span class="s2">)</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s1">update</span><span class="s2">(</span><span class="s1">entity</span><span class="s2">)</span>
+            <span class="s1">entity</span><span class="s2">.</span><span class="s1">id</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s4">&quot;DELETE FROM workout WHERE weekDayId = :dayId&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">deleteByDay</span><span class="s2">(</span><span class="s1">dayId: Int</span><span class="s2">)</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

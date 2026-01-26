@@ -1,0 +1,118 @@
+<html>
+<head>
+<title>TrainingReminderWorker.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+TrainingReminderWorker.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">notifications</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">NotificationChannel</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">NotificationManager</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">PendingIntent</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Context</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Intent</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Build</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">core</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">NotificationCompat</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">work</span><span class="s2">.</span><span class="s1">CoroutineWorker</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">work</span><span class="s2">.</span><span class="s1">WorkerParameters</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">MainActivity</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">R</span>
+<span class="s1">import kotlin</span><span class="s2">.</span><span class="s1">random</span><span class="s2">.</span><span class="s1">Random</span>
+
+<span class="s0">class </span><span class="s1">TrainingReminderWorker</span><span class="s2">(</span>
+    <span class="s1">appContext: Context</span><span class="s2">,</span>
+    <span class="s1">params: WorkerParameters</span>
+<span class="s2">) </span><span class="s1">: CoroutineWorker</span><span class="s2">(</span><span class="s1">appContext</span><span class="s2">, </span><span class="s1">params</span><span class="s2">) {</span>
+
+    <span class="s1">companion </span><span class="s0">object </span><span class="s2">{</span>
+        <span class="s1">private const </span><span class="s0">val </span><span class="s1">CHANNEL_ID </span><span class="s2">= </span><span class="s3">&quot;training_reminders&quot;</span>
+        <span class="s1">private const </span><span class="s0">val </span><span class="s1">CHANNEL_NAME </span><span class="s2">= </span><span class="s3">&quot;Lembretes de treino&quot;</span>
+        <span class="s1">private const </span><span class="s0">val </span><span class="s1">NOTIF_ID </span><span class="s2">= </span><span class="s4">1001</span>
+    <span class="s2">}</span>
+
+    <span class="s1">override suspend </span><span class="s0">fun </span><span class="s1">doWork</span><span class="s2">()</span><span class="s1">: Result </span><span class="s2">{</span>
+        <span class="s1">createChannelIfNeeded</span><span class="s2">()</span>
+
+        <span class="s0">val </span><span class="s2">(</span><span class="s1">title</span><span class="s2">, </span><span class="s1">text</span><span class="s2">) = </span><span class="s1">pickMotivationalMessage</span><span class="s2">()</span>
+
+        <span class="s0">val </span><span class="s1">intent </span><span class="s2">= </span><span class="s1">Intent</span><span class="s2">(</span><span class="s1">applicationContext</span><span class="s2">, </span><span class="s1">MainActivity::</span><span class="s0">class</span><span class="s2">.</span><span class="s1">java</span><span class="s2">).</span><span class="s1">apply </span><span class="s2">{</span>
+            <span class="s1">flags </span><span class="s2">= </span><span class="s1">Intent</span><span class="s2">.</span><span class="s1">FLAG_ACTIVITY_NEW_TASK or Intent</span><span class="s2">.</span><span class="s1">FLAG_ACTIVITY_CLEAR_TOP</span>
+        <span class="s2">}</span>
+
+        <span class="s0">val </span><span class="s1">pendingIntent </span><span class="s2">= </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">getActivity</span><span class="s2">(</span>
+            <span class="s1">applicationContext</span><span class="s2">,</span>
+            <span class="s4">0</span><span class="s2">,</span>
+            <span class="s1">intent</span><span class="s2">,</span>
+            <span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">FLAG_UPDATE_CURRENT or </span><span class="s2">(</span><span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s4">23</span><span class="s2">) </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">FLAG_IMMUTABLE </span><span class="s0">else </span><span class="s4">0</span><span class="s2">)</span>
+        <span class="s2">)</span>
+
+        <span class="s0">val </span><span class="s1">nm </span><span class="s2">= </span><span class="s1">applicationContext</span><span class="s2">.</span><span class="s1">getSystemService</span><span class="s2">(</span><span class="s1">Context</span><span class="s2">.</span><span class="s1">NOTIFICATION_SERVICE</span><span class="s2">) </span><span class="s0">as </span><span class="s1">NotificationManager</span>
+
+        <span class="s0">val </span><span class="s1">notification </span><span class="s2">= </span><span class="s1">NotificationCompat</span><span class="s2">.</span><span class="s1">Builder</span><span class="s2">(</span><span class="s1">applicationContext</span><span class="s2">, </span><span class="s1">CHANNEL_ID</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">setSmallIcon</span><span class="s2">(</span><span class="s1">R</span><span class="s2">.</span><span class="s1">drawable</span><span class="s2">.</span><span class="s1">ic_launcher_foreground</span><span class="s2">) </span><span class="s5">// se quiser, troque por um ícone seu</span>
+            <span class="s2">.</span><span class="s1">setContentTitle</span><span class="s2">(</span><span class="s1">title</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">setContentText</span><span class="s2">(</span><span class="s1">text</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">setStyle</span><span class="s2">(</span><span class="s1">NotificationCompat</span><span class="s2">.</span><span class="s1">BigTextStyle</span><span class="s2">().</span><span class="s1">bigText</span><span class="s2">(</span><span class="s1">text</span><span class="s2">))</span>
+            <span class="s2">.</span><span class="s1">setContentIntent</span><span class="s2">(</span><span class="s1">pendingIntent</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">setAutoCancel</span><span class="s2">(</span><span class="s0">true</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">setPriority</span><span class="s2">(</span><span class="s1">NotificationCompat</span><span class="s2">.</span><span class="s1">PRIORITY_HIGH</span><span class="s2">)</span>
+            <span class="s2">.</span><span class="s1">build</span><span class="s2">()</span>
+
+        <span class="s1">nm</span><span class="s2">.</span><span class="s1">notify</span><span class="s2">(</span><span class="s1">NOTIF_ID</span><span class="s2">, </span><span class="s1">notification</span><span class="s2">)</span>
+
+        <span class="s5">// Reagenda para amanhã (mantém 1 notificação/dia)</span>
+        <span class="s1">ReminderScheduler</span><span class="s2">.</span><span class="s1">scheduleDaily</span><span class="s2">(</span><span class="s1">applicationContext</span><span class="s2">, </span><span class="s1">hour </span><span class="s2">= </span><span class="s4">18</span><span class="s2">, </span><span class="s1">minute </span><span class="s2">= </span><span class="s4">0</span><span class="s2">)</span>
+
+        <span class="s0">return </span><span class="s1">Result</span><span class="s2">.</span><span class="s1">success</span><span class="s2">()</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">createChannelIfNeeded</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&lt; </span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION_CODES</span><span class="s2">.</span><span class="s1">O</span><span class="s2">) </span><span class="s0">return</span>
+        <span class="s0">val </span><span class="s1">nm </span><span class="s2">= </span><span class="s1">applicationContext</span><span class="s2">.</span><span class="s1">getSystemService</span><span class="s2">(</span><span class="s1">Context</span><span class="s2">.</span><span class="s1">NOTIFICATION_SERVICE</span><span class="s2">) </span><span class="s0">as </span><span class="s1">NotificationManager</span>
+        <span class="s0">val </span><span class="s1">existing </span><span class="s2">= </span><span class="s1">nm</span><span class="s2">.</span><span class="s1">getNotificationChannel</span><span class="s2">(</span><span class="s1">CHANNEL_ID</span><span class="s2">)</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">existing </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) </span><span class="s0">return</span>
+
+        <span class="s0">val </span><span class="s1">channel </span><span class="s2">= </span><span class="s1">NotificationChannel</span><span class="s2">(</span>
+            <span class="s1">CHANNEL_ID</span><span class="s2">,</span>
+            <span class="s1">CHANNEL_NAME</span><span class="s2">,</span>
+            <span class="s1">NotificationManager</span><span class="s2">.</span><span class="s1">IMPORTANCE_HIGH</span>
+        <span class="s2">).</span><span class="s1">apply </span><span class="s2">{</span>
+            <span class="s1">description </span><span class="s2">= </span><span class="s3">&quot;Notificações motivacionais para te ajudar a manter o hábito de treinar.&quot;</span>
+        <span class="s2">}</span>
+
+        <span class="s1">nm</span><span class="s2">.</span><span class="s1">createNotificationChannel</span><span class="s2">(</span><span class="s1">channel</span><span class="s2">)</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">pickMotivationalMessage</span><span class="s2">()</span><span class="s1">: Pair</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt; {</span>
+        <span class="s5">// Forte, positivo, sem incentivar “quantidade”.</span>
+        <span class="s0">val </span><span class="s1">list </span><span class="s2">= </span><span class="s1">listOf</span><span class="s2">(</span>
+            <span class="s3">&quot;Hoje você não precisa motivação. Precisa começar.&quot; </span><span class="s1">to</span>
+                    <span class="s3">&quot;Abra o FitTodoDia, faça o aquecimento e deixe o corpo te levar. Consistência vence.&quot;</span><span class="s2">,</span>
+            <span class="s3">&quot;Disciplina é liberdade.&quot; </span><span class="s1">to</span>
+                    <span class="s3">&quot;A melhor versão de você começa com um passo. Vá e comece com calma e técnica.&quot;</span><span class="s2">,</span>
+            <span class="s3">&quot;Você é o tipo de pessoa que treina.&quot; </span><span class="s1">to</span>
+                    <span class="s3">&quot;Não negocie com a preguiça: apareça. Depois você decide o resto.&quot;</span><span class="s2">,</span>
+            <span class="s3">&quot;Seu futuro agradece.&quot; </span><span class="s1">to</span>
+                    <span class="s3">&quot;Treino feito (no seu ritmo) é vitória. Segurança e qualidade primeiro.&quot;</span><span class="s2">,</span>
+            <span class="s3">&quot;Só hoje.&quot; </span><span class="s1">to</span>
+                    <span class="s3">&quot;Faça o básico bem-feito. Um treino conta. Um passo por dia muda tudo.&quot;</span>
+        <span class="s2">)</span>
+        <span class="s0">return </span><span class="s1">list</span><span class="s2">[</span><span class="s1">Random</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">(</span><span class="s1">list</span><span class="s2">.</span><span class="s1">size</span><span class="s2">)]</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

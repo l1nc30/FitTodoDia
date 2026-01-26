@@ -1,0 +1,174 @@
+<html>
+<head>
+<title>ExerciseLibraryScreen.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ExerciseLibraryScreen.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">screens</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">Arrangement</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">Column</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">Row</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">Spacer</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">fillMaxSize</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">fillMaxWidth</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">height</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">padding</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">LazyColumn</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">items</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">Card</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">ExperimentalMaterial3Api</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">ExposedDropdownMenuBox</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">ExposedDropdownMenuDefaults</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">MaterialTheme</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">OutlinedButton</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">OutlinedTextField</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">Text</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">TextButton</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">DropdownMenuItem</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.</span><span class="s1">Button</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">Composable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">collectAsState</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">getValue</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">mutableStateOf</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">remember</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">setValue</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">unit</span><span class="s2">.</span><span class="s1">dp</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">lifecycle</span><span class="s2">.</span><span class="s1">viewmodel</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">viewModel</span>
+
+<span class="s1">@OptIn</span><span class="s2">(</span><span class="s1">ExperimentalMaterial3Api::</span><span class="s0">class</span><span class="s2">)</span>
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">ExerciseLibraryScreen</span><span class="s2">(</span>
+    <span class="s1">dayId: Int</span><span class="s2">,</span>
+    <span class="s1">onBack: </span><span class="s2">() -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">onSelected: </span><span class="s2">(</span><span class="s1">exerciseId: Long</span><span class="s2">) -&gt; </span><span class="s1">Unit</span>
+<span class="s2">) {</span>
+    <span class="s0">val </span><span class="s1">vm: ExerciseLibraryViewModel </span><span class="s2">= </span><span class="s1">viewModel</span><span class="s2">()</span>
+    <span class="s0">val </span><span class="s1">state by vm</span><span class="s2">.</span><span class="s1">uiState</span><span class="s2">.</span><span class="s1">collectAsState</span><span class="s2">()</span>
+
+    <span class="s0">var </span><span class="s1">expanded by remember </span><span class="s2">{ </span><span class="s1">mutableStateOf</span><span class="s2">(</span><span class="s0">false</span><span class="s2">) }</span>
+
+    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxSize</span><span class="s2">().</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">16</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+        <span class="s1">Row</span><span class="s2">(</span>
+            <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+            <span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">SpaceBetween</span>
+        <span class="s2">) {</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Biblioteca de Exercícios&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">headlineSmall</span><span class="s2">)</span>
+            <span class="s1">TextButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">onBack</span><span class="s2">) { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Voltar&quot;</span><span class="s2">) }</span>
+        <span class="s2">}</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s1">OutlinedTextField</span><span class="s2">(</span>
+            <span class="s1">value </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">query</span><span class="s2">,</span>
+            <span class="s1">onValueChange </span><span class="s2">= </span><span class="s1">vm::setQuery</span><span class="s2">,</span>
+            <span class="s1">label </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Buscar exercício&quot;</span><span class="s2">) },</span>
+            <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">(),</span>
+            <span class="s1">singleLine </span><span class="s2">= </span><span class="s0">true</span>
+        <span class="s2">)</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s1">ExposedDropdownMenuBox</span><span class="s2">(</span>
+            <span class="s1">expanded </span><span class="s2">= </span><span class="s1">expanded</span><span class="s2">,</span>
+            <span class="s1">onExpandedChange </span><span class="s2">= { </span><span class="s1">expanded </span><span class="s2">= !</span><span class="s1">expanded </span><span class="s2">}</span>
+        <span class="s2">) {</span>
+            <span class="s1">OutlinedTextField</span><span class="s2">(</span>
+                <span class="s1">value </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">selectedGroup</span><span class="s2">,</span>
+                <span class="s1">onValueChange </span><span class="s2">= {},</span>
+                <span class="s1">readOnly </span><span class="s2">= </span><span class="s0">true</span><span class="s2">,</span>
+                <span class="s1">label </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Grupo muscular&quot;</span><span class="s2">) },</span>
+                <span class="s1">trailingIcon </span><span class="s2">= { </span><span class="s1">ExposedDropdownMenuDefaults</span><span class="s2">.</span><span class="s1">TrailingIcon</span><span class="s2">(</span><span class="s1">expanded </span><span class="s2">= </span><span class="s1">expanded</span><span class="s2">) },</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span>
+                    <span class="s2">.</span><span class="s1">menuAnchor</span><span class="s2">()</span>
+                    <span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+            <span class="s2">)</span>
+
+            <span class="s1">ExposedDropdownMenu</span><span class="s2">(</span>
+                <span class="s1">expanded </span><span class="s2">= </span><span class="s1">expanded</span><span class="s2">,</span>
+                <span class="s1">onDismissRequest </span><span class="s2">= { </span><span class="s1">expanded </span><span class="s2">= </span><span class="s0">false </span><span class="s2">}</span>
+            <span class="s2">) {</span>
+                <span class="s1">state</span><span class="s2">.</span><span class="s1">availableGroups</span><span class="s2">.</span><span class="s1">forEach </span><span class="s2">{ </span><span class="s1">group </span><span class="s2">-&gt;</span>
+                    <span class="s1">DropdownMenuItem</span><span class="s2">(</span>
+                        <span class="s1">text </span><span class="s2">= { </span><span class="s1">Text</span><span class="s2">(</span><span class="s1">group</span><span class="s2">) },</span>
+                        <span class="s1">onClick </span><span class="s2">= {</span>
+                            <span class="s1">vm</span><span class="s2">.</span><span class="s1">setGroup</span><span class="s2">(</span><span class="s1">group</span><span class="s2">)</span>
+                            <span class="s1">expanded </span><span class="s2">= </span><span class="s0">false</span>
+                        <span class="s2">}</span>
+                    <span class="s2">)</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s1">Row</span><span class="s2">(</span><span class="s1">horizontalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">OutlinedButton</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= </span><span class="s1">vm::clearFilters</span><span class="s2">) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Limpar filtros&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+            <span class="s1">Button</span><span class="s2">(</span><span class="s1">onClick </span><span class="s2">= { </span><span class="s5">/* reservado para futuros filtros */ </span><span class="s2">}) {</span>
+                <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Ok&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">16</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">items</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">Text</span><span class="s2">(</span>
+                <span class="s4">&quot;Nenhum exercício cadastrado. Se você adicionou seed agora, desinstale o app e rode novamente para recriar o banco.&quot;</span><span class="s2">,</span>
+                <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span>
+            <span class="s2">)</span>
+            <span class="s0">return</span>
+        <span class="s2">}</span>
+
+        <span class="s1">Text</span><span class="s2">(</span>
+            <span class="s4">&quot;Resultados: </span><span class="s0">${</span><span class="s1">state</span><span class="s2">.</span><span class="s1">filtered</span><span class="s2">.</span><span class="s1">size</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">,</span>
+            <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span>
+        <span class="s2">)</span>
+        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">filtered</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Nada encontrado com esses filtros.&quot;</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodyMedium</span><span class="s2">)</span>
+            <span class="s0">return</span>
+        <span class="s2">}</span>
+
+        <span class="s1">LazyColumn</span><span class="s2">(</span><span class="s1">verticalArrangement </span><span class="s2">= </span><span class="s1">Arrangement</span><span class="s2">.</span><span class="s1">spacedBy</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">items</span><span class="s2">(</span>
+                <span class="s1">items </span><span class="s2">= </span><span class="s1">state</span><span class="s2">.</span><span class="s1">filtered</span><span class="s2">,</span>
+                <span class="s1">key </span><span class="s2">= { </span><span class="s1">it</span><span class="s2">.</span><span class="s1">id </span><span class="s2">}</span>
+            <span class="s2">) { </span><span class="s1">item </span><span class="s2">-&gt;</span>
+                <span class="s1">Card</span><span class="s2">(</span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()) {</span>
+                    <span class="s1">Column</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">14</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">item</span><span class="s2">.</span><span class="s1">name</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">)</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">4</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">item</span><span class="s2">.</span><span class="s1">muscleGroup</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">bodySmall</span><span class="s2">)</span>
+                        <span class="s1">Spacer</span><span class="s2">(</span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(</span><span class="s3">10</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">))</span>
+                        <span class="s1">OutlinedButton</span><span class="s2">(</span>
+                            <span class="s1">onClick </span><span class="s2">= { </span><span class="s1">onSelected</span><span class="s2">(</span><span class="s1">item</span><span class="s2">.</span><span class="s1">id</span><span class="s2">) },</span>
+                            <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+                        <span class="s2">) {</span>
+                            <span class="s1">Text</span><span class="s2">(</span><span class="s4">&quot;Selecionar&quot;</span><span class="s2">)</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

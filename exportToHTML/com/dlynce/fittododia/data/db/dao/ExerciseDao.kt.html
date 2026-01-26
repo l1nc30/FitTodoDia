@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>ExerciseDao.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ExerciseDao.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">dao</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Dao</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Insert</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">OnConflictStrategy</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">room</span><span class="s2">.</span><span class="s1">Query</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">dlynce</span><span class="s2">.</span><span class="s1">fittododia</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">db</span><span class="s2">.</span><span class="s1">entities</span><span class="s2">.</span><span class="s1">ExerciseEntity</span>
+<span class="s1">import kotlinx</span><span class="s2">.</span><span class="s1">coroutines</span><span class="s2">.</span><span class="s1">flow</span><span class="s2">.</span><span class="s1">Flow</span>
+
+<span class="s1">@Dao</span>
+<span class="s0">interface </span><span class="s1">ExerciseDao </span><span class="s2">{</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;SELECT * FROM exercise ORDER BY name ASC&quot;</span><span class="s2">)</span>
+    <span class="s0">fun </span><span class="s1">observeAll</span><span class="s2">()</span><span class="s1">: Flow</span><span class="s2">&lt;</span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">ExerciseEntity</span><span class="s2">&gt;&gt;</span>
+
+    <span class="s1">@Query</span><span class="s2">(</span><span class="s3">&quot;SELECT * FROM exercise WHERE id = :id LIMIT 1&quot;</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">getById</span><span class="s2">(</span><span class="s1">id: Long</span><span class="s2">)</span><span class="s1">: ExerciseEntity?</span>
+
+    <span class="s1">@Insert</span><span class="s2">(</span><span class="s1">onConflict </span><span class="s2">= </span><span class="s1">OnConflictStrategy</span><span class="s2">.</span><span class="s1">REPLACE</span><span class="s2">)</span>
+    <span class="s1">suspend </span><span class="s0">fun </span><span class="s1">upsertAll</span><span class="s2">(</span><span class="s1">items: List</span><span class="s2">&lt;</span><span class="s1">ExerciseEntity</span><span class="s2">&gt;)</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>
