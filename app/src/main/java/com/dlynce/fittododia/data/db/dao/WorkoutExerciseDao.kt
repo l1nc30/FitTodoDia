@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutExerciseDao {
+
     @Query("SELECT workoutId FROM workout_exercise WHERE id = :rowId LIMIT 1")
     suspend fun getWorkoutIdByRowId(rowId: Long): Long?
 
@@ -23,7 +24,6 @@ interface WorkoutExerciseDao {
         }
     }
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: WorkoutExerciseEntity): Long
 
@@ -34,7 +34,7 @@ interface WorkoutExerciseDao {
         SELECT we.id as id,
                e.name as exerciseName,
                e.muscleGroup as muscleGroup,
-               e.gifAssetPath as gifAssetPath,
+               e.gifAssetPath as pngAssetPath,
                we.sets as sets,
                we.reps as reps,
                we.restSeconds as restSeconds,
@@ -54,7 +54,7 @@ interface WorkoutExerciseDao {
         SELECT we.id as id,
                e.name as exerciseName,
                e.muscleGroup as muscleGroup,
-               e.gifAssetPath as gifAssetPath,
+               e.gifAssetPath as pngAssetPath,
                we.sets as sets,
                we.reps as reps,
                we.restSeconds as restSeconds,

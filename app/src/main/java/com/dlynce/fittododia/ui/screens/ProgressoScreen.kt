@@ -39,7 +39,6 @@ data class LevelInfo(
     val totalXp: Int
 )
 
-// ✅ RENOMEADO para não conflitar com StreakInfo do TreinoScreen.kt
 data class ProgressoStreakInfo(
     val current: Int,
     val best: Int,
@@ -95,7 +94,6 @@ class ProgressoViewModel(app: Application) : AndroidViewModel(app) {
                 val totalSessions = summaries.size
                 val totalSetsDoneAll = summaries.sumOf { it.totalSetsDone }
 
-                // Missão do dia:
                 val missionKeyForDisplay =
                     if (streakInfo.trainedToday) MissionKeys.RECOVER
                     else missionRow?.missionKey ?: defaultMissionKey(streakInfo)
@@ -211,11 +209,18 @@ class ProgressoViewModel(app: Application) : AndroidViewModel(app) {
 
 // -------------------- Regras --------------------
 
+// ✅ XP “saudável”: não premia passar do planejado
 private fun xpForSession(s: SessionSummaryRow): Int {
-    val base = 80
-    val perExercise = 8 * s.totalExercises
-    val perSetDone = 3 * s.totalSetsDone
-    return base + perExercise + perSetDone
+    val base = 90
+    val perExercise = 10 * s.totalExercises
+
+    val planned = s.totalSetsPlanned.coerceAtLeast(0)
+    val doneCapped = s.totalSetsDone.coerceAtLeast(0).coerceAtMost(planned)
+    val perSetDone = 2 * doneCapped
+
+    val completionBonus = if (planned > 0 && doneCapped == planned) 25 else 0
+
+    return base + perExercise + perSetDone + completionBonus
 }
 
 private fun xpNeededForLevel(level: Int): Int = 200 + max(0, level - 1) * 100

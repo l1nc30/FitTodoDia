@@ -29,8 +29,11 @@ class MainActivity : ComponentActivity() {
         ensureNotificationPermissionAndSchedule()
 
         setContent {
-            MaterialTheme {
-                Surface {
+            com.dlynce.fittododia.ui.theme.FitTodoDiaTheme(
+                darkTheme = true,
+                dynamicColor = false
+            ) {
+                Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.background) {
                     AppNav()
                 }
             }

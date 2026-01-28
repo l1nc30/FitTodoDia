@@ -4,7 +4,7 @@ data class WorkoutExerciseRow(
     val id: Long,
     val exerciseName: String,
     val muscleGroup: String,
-    val gifAssetPath: String,
+    val pngAssetPath: String,
     val sets: Int,
     val reps: String,
     val restSeconds: Int?,

@@ -25,7 +25,13 @@ fun AppNav() {
             startDestination = Route.Home.path
         ) {
             // --- Tabs principais ---
-            composable(Route.Home.path) { HomeScreen() }
+            composable(Route.Home.path) {
+                HomeScreen(
+                    onGoTreino = { navController.navigate(Route.Treino.path) },
+                    onGoAgenda = { navController.navigate(Route.Agenda.path) },
+                    onGoProgresso = { navController.navigate(Route.Progresso.path) }
+                )
+            }
 
             composable(Route.Agenda.path) {
                 AgendaScreen(
@@ -40,6 +46,7 @@ fun AppNav() {
                     onNavigateToProgress = {
                         navController.navigate(Route.Progresso.path) {
                             launchSingleTop = true
+                            popUpTo(Route.Treino.path) { inclusive = true }
                         }
                     }
                 )

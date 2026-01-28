@@ -1,6 +1,13 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.dlynce.fittododia.ui.screens
 
 import android.app.Application
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,7 +16,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,12 +30,14 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.dlynce.fittododia.data.db.AppDatabase
 import com.dlynce.fittododia.data.db.dao.WorkoutExerciseRow
+import com.dlynce.fittododia.data.db.entities.DailyMissionEntity
 import com.dlynce.fittododia.data.db.entities.WorkoutSessionEntity
 import com.dlynce.fittododia.data.db.entities.WorkoutSessionExerciseEntity
 import com.dlynce.fittododia.data.repo.WeekDayRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -34,7 +45,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.text.Normalizer
 import java.time.DayOfWeek
@@ -42,8 +52,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.max
 
-
-
+// ⚠️ Não deixe esses tipos "private", pois o ViewModel expõe eles publicamente
 enum class TreinoMode { Overview, Focus }
 
 data class RestTimerState(
@@ -227,7 +236,20 @@ class TreinoViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 db.workoutSessionDao().insertExercises(items)
 
-                // reset de sessão
+                // ✅ Missão do dia concluída ao finalizar treino
+                val mission = db.dailyMissionDao().getByDate(dateEpochDay)
+                if (mission != null) {
+                    if (!mission.completed) db.dailyMissionDao().upsert(mission.copy(completed = true))
+                } else {
+                    db.dailyMissionDao().upsert(
+                        DailyMissionEntity(
+                            dateEpochDay = dateEpochDay,
+                            missionKey = "START",
+                            completed = true
+                        )
+                    )
+                }
+
                 sessionStartEpochMs = null
                 resetRestTimer()
                 _mode.value = TreinoMode.Overview
@@ -310,11 +332,8 @@ private fun rememberGifImageLoader(): ImageLoader {
     return remember {
         ImageLoader.Builder(context)
             .components {
-                if (android.os.Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
+                if (android.os.Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+                else add(GifDecoder.Factory())
             }
             .build()
     }
@@ -331,123 +350,206 @@ fun TreinoScreen(
     val completed by vm.completedSets.collectAsState()
     val timer by vm.restTimer.collectAsState()
 
+    val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    val haptics = LocalHapticFeedback.current
+
     var showFinishDialog by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Treino de hoje", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(4.dp))
-        Text(state.dayLabel, style = MaterialTheme.typography.bodyMedium)
-
-        Spacer(Modifier.height(14.dp))
-
-        if (!state.hasWorkout) {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp)) {
-                    Text("Nenhum treino cadastrado para hoje.", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Vá na Agenda, selecione o dia e adicione exercícios.", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            return
-        }
-
-        if (message != null) {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) {
-                    Text(message!!, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-        }
-
-        when (mode) {
-            TreinoMode.Overview -> OverviewView(
-                workoutName = state.workoutName,
-                rows = state.rows,
-                onStart = {
-                    message = null
-                    vm.startWorkout(state.rows)
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Treino", style = MaterialTheme.typography.titleLarge)
+                        Text(state.dayLabel, style = MaterialTheme.typography.bodySmall)
+                    }
+                },
+                actions = {
+                    if (mode == TreinoMode.Focus) {
+                        TextButton(onClick = { showFinishDialog = true }) { Text("Finalizar") }
+                    }
                 }
             )
+        }
+    ) { padding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            if (errorMsg != null) {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(errorMsg!!, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
 
-            TreinoMode.Focus -> FocusView(
-                workoutName = state.workoutName,
-                rows = state.rows,
-                focusIndex = focusIndex.coerceIn(0, (state.rows.size - 1).coerceAtLeast(0)),
-                completedSets = completed,
-                timer = timer,
-                onBackToList = { vm.backToOverview() },
-                onToggleSet = { rowId, setIdx -> vm.toggleSet(rowId, setIdx) },
-                onPrev = { vm.goPrev(state.rows.size) },
-                onNext = { vm.goNext(state.rows.size) },
-                onStartRest = { seconds -> vm.startRest(seconds) },
-                onPauseResume = { vm.togglePauseRest() },
-                onResetRest = { vm.resetRestTimer() },
-                onZeroRest = { vm.zeroRestTimer() },
-                onFinish = { showFinishDialog = true }
-            )
+            if (!state.hasWorkout) {
+                EmptyStateCard(
+                    title = "Nenhum treino cadastrado para hoje",
+                    subtitle = "Vá na Agenda, selecione o dia e adicione exercícios."
+                )
+                return@Column
+            }
+
+            when (mode) {
+                TreinoMode.Overview -> OverviewViewPolished(
+                    workoutName = state.workoutName,
+                    rows = state.rows,
+                    onStart = {
+                        errorMsg = null
+                        vm.startWorkout(state.rows)
+                        scope.launch { snackbar.showSnackbar("Bora! Treino iniciado ✅") }
+                    }
+                )
+
+                TreinoMode.Focus -> FocusViewPolished(
+                    workoutName = state.workoutName,
+                    rows = state.rows,
+                    focusIndex = focusIndex.coerceIn(0, (state.rows.size - 1).coerceAtLeast(0)),
+                    completedSets = completed,
+                    timer = timer,
+                    onBackToList = {
+                        vm.backToOverview()
+                        scope.launch { snackbar.showSnackbar("Voltando para a lista") }
+                    },
+                    onToggleSet = { rowId, setIdx ->
+                        vm.toggleSet(rowId, setIdx)
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    },
+                    onPrev = { vm.goPrev(state.rows.size) },
+                    onNext = { vm.goNext(state.rows.size) },
+                    onStartRest = { seconds ->
+                        vm.startRest(seconds)
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
+                    onPauseResume = { vm.togglePauseRest() },
+                    onResetRest = { vm.resetRestTimer() },
+                    onZeroRest = { vm.zeroRestTimer() },
+                    onFinish = { showFinishDialog = true }
+                )
+            }
         }
     }
 
     if (showFinishDialog) {
+        val planned = state.rows.sumOf { it.sets.coerceAtLeast(0) }
+        val done = state.rows.sumOf { r -> completed[r.id]?.count { it } ?: 0 }
+        val xpNow = estimateXpSafe(rows = state.rows.size, plannedSets = planned, doneSets = done)
+
         AlertDialog(
             onDismissRequest = { showFinishDialog = false },
+            title = { Text("Finalizar treino") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Salvar no histórico e marcar a missão do dia como concluída.")
+                    Text("Séries: $done / $planned", style = MaterialTheme.typography.bodySmall)
+                    Text("XP estimado: +$xpNow XP", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "Foco em consistência. Se hoje foi leve, tá valendo. ✅",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
             confirmButton = {
                 Button(onClick = {
                     showFinishDialog = false
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+
                     vm.finishWorkout(
                         dayId = state.dayId,
                         workoutId = state.workoutId,
                         workoutName = state.workoutName,
                         rows = state.rows,
                         onSuccess = {
-                            message = null
-                            // ✅ vai para Progresso
-                            onNavigateToProgress()
+                            errorMsg = null
+                            // snack + navega pro progresso
+                            val job = scope.launch {
+                                snackbar.showSnackbar("Treino salvo! +$xpNow XP ✅")
+                            }
+                            scope.launch {
+                                job.join()
+                                onNavigateToProgress()
+                            }
                         },
-                        onError = { msg -> message = msg }
+                        onError = { msg ->
+                            errorMsg = msg
+                            scope.launch { snackbar.showSnackbar("Erro ao salvar") }
+                        }
                     )
                 }) { Text("Finalizar e salvar") }
             },
             dismissButton = {
                 OutlinedButton(onClick = { showFinishDialog = false }) { Text("Cancelar") }
-            },
-            title = { Text("Finalizar treino") },
-            text = { Text("Deseja salvar este treino no histórico e concluir o dia?") }
+            }
         )
     }
 }
 
+// -------------------- UI (polida) --------------------
+
 @Composable
-private fun OverviewView(
+private fun EmptyStateCard(title: String, subtitle: String) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun OverviewViewPolished(
     workoutName: String,
     rows: List<WorkoutExerciseRow>,
     onStart: () -> Unit
 ) {
+    val plannedSets = rows.sumOf { it.sets.coerceAtLeast(0) }
+
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp)) {
-            Text(workoutName, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text("Exercícios: ${rows.size}", style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onStart, enabled = rows.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(workoutName, style = MaterialTheme.typography.titleLarge)
+            Text(
+                "${rows.size} exercícios • $plannedSets séries planejadas",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Button(
+                onClick = onStart,
+                enabled = rows.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Iniciar treino")
             }
         }
     }
 
     Spacer(Modifier.height(14.dp))
+
     Text("Exercícios do dia", style = MaterialTheme.typography.titleMedium)
     Spacer(Modifier.height(8.dp))
+
+    if (rows.isEmpty()) {
+        EmptyStateCard(
+            title = "Sem exercícios",
+            subtitle = "Volte na Agenda e adicione pelo menos 1 exercício."
+        )
+        return
+    }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(rows, key = { it.id }) { r ->
             Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp)) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(r.exerciseName, style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(4.dp))
-                    val rest = r.restSeconds?.let { " • Descanso ${it}s" } ?: ""
+                    if (r.muscleGroup.isNotBlank()) Text(r.muscleGroup, style = MaterialTheme.typography.bodySmall)
+                    val rest = r.restSeconds?.let { " • descanso ${it}s" } ?: ""
                     Text("${r.sets}x${r.reps}$rest", style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -456,7 +558,7 @@ private fun OverviewView(
 }
 
 @Composable
-private fun FocusView(
+private fun FocusViewPolished(
     workoutName: String,
     rows: List<WorkoutExerciseRow>,
     focusIndex: Int,
@@ -473,110 +575,146 @@ private fun FocusView(
     onFinish: () -> Unit
 ) {
     if (rows.isEmpty()) {
-        Text("Sem exercícios para executar.", style = MaterialTheme.typography.bodyMedium)
+        EmptyStateCard("Sem exercícios para executar", "Volte e adicione exercícios.")
         return
     }
 
-    val current = rows[focusIndex]
-    val doneList = completedSets[current.id] ?: List(current.sets.coerceAtLeast(1)) { false }
-    val doneCount = doneList.count { it }
-    val suggestedRest = current.restSeconds ?: 60
+    val totalPlanned = rows.sumOf { it.sets.coerceAtLeast(0) }
+    val totalDone = rows.sumOf { r -> completedSets[r.id]?.count { it } ?: 0 }
+    val overallProgress = if (totalPlanned <= 0) 0f else totalDone.toFloat() / totalPlanned.toFloat()
+
+    // Top summary (game-like)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(workoutName, style = MaterialTheme.typography.titleMedium)
+            Text("Progresso do treino", style = MaterialTheme.typography.bodySmall)
+            LinearProgressIndicator(
+                progress = overallProgress.coerceIn(0f, 1f),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("$totalDone / $totalPlanned séries", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    Spacer(Modifier.height(12.dp))
 
     val gifLoader = rememberGifImageLoader()
     val context = LocalContext.current
 
-    Card(Modifier.fillMaxWidth()) {
-        Column(
-            Modifier
-                .padding(14.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Text(workoutName, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text("Exercício ${focusIndex + 1} de ${rows.size}", style = MaterialTheme.typography.bodySmall)
+    AnimatedContent(
+        targetState = focusIndex,
+        transitionSpec = {
+            (fadeIn() togetherWith fadeOut()).using(SizeTransform(clip = false))
+        },
+        label = "exerciseSwap"
+    ) { idx ->
+        val current = rows[idx]
+        val doneList = completedSets[current.id] ?: List(current.sets.coerceAtLeast(1)) { false }
+        val doneCount = doneList.count { it }
+        val suggestedRest = current.restSeconds ?: 60
+        val perExProgress = if (doneList.isEmpty()) 0f else doneCount.toFloat() / doneList.size.toFloat()
 
-            if (current.gifAssetPath.isNotBlank()) {
-                Spacer(Modifier.height(10.dp))
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data("file:///android_asset/${current.gifAssetPath}")
-                        .crossfade(true)
-                        .build(),
-                    imageLoader = gifLoader,
-                    contentDescription = "Demonstração do exercício",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-            Text(current.exerciseName, style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(2.dp))
-            if (current.muscleGroup.isNotBlank()) Text(current.muscleGroup, style = MaterialTheme.typography.bodySmall)
-
-            Spacer(Modifier.height(10.dp))
-            val rest = current.restSeconds?.let { " • Descanso ${it}s" } ?: ""
-            Text("${current.sets}x${current.reps}$rest", style = MaterialTheme.typography.bodyMedium)
-
-            Spacer(Modifier.height(12.dp))
-            Text("Séries concluídas: $doneCount / ${doneList.size}", style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(6.dp))
-
-            doneList.forEachIndexed { idx, checked ->
+        Card(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier
+                    .padding(14.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Série ${idx + 1}", style = MaterialTheme.typography.bodyMedium)
-                    Checkbox(checked = checked, onCheckedChange = { onToggleSet(current.id, idx) })
+                    Text("Exercício ${idx + 1}/${rows.size}", style = MaterialTheme.typography.bodySmall)
+                    Text("+${estimateXpSafe(rows.size, totalPlanned, totalDone)} XP (estim.)", style = MaterialTheme.typography.bodySmall)
                 }
-            }
 
-            Spacer(Modifier.height(12.dp))
+                Text(current.exerciseName, style = MaterialTheme.typography.headlineSmall)
+                if (current.muscleGroup.isNotBlank()) Text(current.muscleGroup, style = MaterialTheme.typography.bodySmall)
 
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) {
-                    Text("Descanso", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
+                if (current.pngAssetPath.isNotBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data("file:///android_asset/${current.pngAssetPath}")
+                            .crossfade(true)
+                            .build(),
+                        imageLoader = gifLoader,
+                        contentDescription = "Demonstração do exercício",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                    )
+                }
 
-                    if (timer.initialSeconds <= 0) {
-                        Text("Sugestão: ${formatMmSs(suggestedRest)}", style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = { onStartRest(suggestedRest) }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Iniciar descanso")
-                        }
-                    } else {
-                        Text(formatMmSs(timer.remainingSeconds), style = MaterialTheme.typography.headlineSmall)
-                        if (timer.finished) {
-                            Spacer(Modifier.height(4.dp))
-                            Text("Descanso concluído.", style = MaterialTheme.typography.bodySmall)
-                        }
+                val restTxt = current.restSeconds?.let { " • descanso ${it}s" } ?: ""
+                Text("${current.sets}x${current.reps}$restTxt", style = MaterialTheme.typography.bodyMedium)
 
-                        Spacer(Modifier.height(10.dp))
+                // Per-exercise progress
+                LinearProgressIndicator(
+                    progress = perExProgress.coerceIn(0f, 1f),
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = onPauseResume, modifier = Modifier.weight(1f)) {
-                                Text(if (timer.running) "Pausar" else "Continuar")
+                Text("$doneCount / ${doneList.size} séries concluídas", style = MaterialTheme.typography.bodySmall)
+
+                // Sets checklist
+                doneList.forEachIndexed { i, checked ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Série ${i + 1}", style = MaterialTheme.typography.bodyMedium)
+                        Checkbox(checked = checked, onCheckedChange = { onToggleSet(current.id, i) })
+                    }
+                }
+
+                // Rest timer card
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Descanso", style = MaterialTheme.typography.titleMedium)
+
+                        if (timer.initialSeconds <= 0) {
+                            Text("Sugestão: ${formatMmSs(suggestedRest)}", style = MaterialTheme.typography.bodySmall)
+                            Button(onClick = { onStartRest(suggestedRest) }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Iniciar descanso")
                             }
-                            OutlinedButton(onClick = onResetRest, modifier = Modifier.weight(1f)) { Text("Resetar") }
-                            OutlinedButton(onClick = onZeroRest, modifier = Modifier.weight(1f)) { Text("Zerar") }
+                        } else {
+                            Text(formatMmSs(timer.remainingSeconds), style = MaterialTheme.typography.headlineSmall)
+                            if (timer.finished) Text("Descanso concluído ✅", style = MaterialTheme.typography.bodySmall)
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                OutlinedButton(onClick = onPauseResume, modifier = Modifier.weight(1f)) {
+                                    Text(if (timer.running) "Pausar" else "Continuar")
+                                }
+                                OutlinedButton(onClick = onResetRest, modifier = Modifier.weight(1f)) { Text("Resetar") }
+                                OutlinedButton(onClick = onZeroRest, modifier = Modifier.weight(1f)) { Text("Zerar") }
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onBackToList, modifier = Modifier.weight(1f)) { Text("Lista") }
+                    OutlinedButton(onClick = onPrev, enabled = idx > 0, modifier = Modifier.weight(1f)) { Text("Anterior") }
+                    Button(onClick = onNext, enabled = idx < rows.lastIndex, modifier = Modifier.weight(1f)) { Text("Próximo") }
+                }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(onClick = onBackToList, modifier = Modifier.weight(1f)) { Text("Lista") }
-                OutlinedButton(onClick = onPrev, enabled = focusIndex > 0, modifier = Modifier.weight(1f)) { Text("Anterior") }
-                Button(onClick = onNext, enabled = focusIndex < rows.lastIndex, modifier = Modifier.weight(1f)) { Text("Próximo") }
-            }
-
-            Spacer(Modifier.height(10.dp))
-            Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
-                Text("Finalizar treino")
+                Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
+                    Text("Finalizar treino")
+                }
             }
         }
     }
+}
+
+// -------------------- Helpers --------------------
+
+/**
+ * XP “seguro”: não incentiva exceder o planejado (cap no doneSets <= plannedSets)
+ * (mesmo espírito do ProgressoScreen).
+ */
+private fun estimateXpSafe(rows: Int, plannedSets: Int, doneSets: Int): Int {
+    val base = 90
+    val perExercise = 10 * rows
+    val planned = plannedSets.coerceAtLeast(0)
+    val doneCapped = doneSets.coerceAtLeast(0).coerceAtMost(planned)
+    val perSetDone = 2 * doneCapped
+    val completionBonus = if (planned > 0 && doneCapped == planned) 25 else 0
+    return base + perExercise + perSetDone + completionBonus
 }
 
 private fun formatMmSs(totalSeconds: Int): String {

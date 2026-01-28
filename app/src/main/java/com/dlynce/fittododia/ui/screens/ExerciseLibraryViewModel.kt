@@ -17,7 +17,7 @@ data class ExerciseItem(
     val id: Long,
     val name: String,
     val muscleGroup: String,
-    val gifAssetPath: String
+    val pngAssetPath: String
 )
 
 data class ExerciseLibraryUiState(
@@ -44,7 +44,7 @@ class ExerciseLibraryViewModel(app: Application) : AndroidViewModel(app) {
                         id = it.id,
                         name = it.name,
                         muscleGroup = it.muscleGroup,
-                        gifAssetPath = it.gifAssetPath
+                        pngAssetPath = it.pngAssetPath
                     )
                 }
             },

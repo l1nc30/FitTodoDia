@@ -117,11 +117,11 @@ fun EditWorkoutExerciseScreen(
             }
         }
 
-        if (row!!.gifAssetPath.isNotBlank()) {
+        if (row!!.pngAssetPath.isNotBlank()) {
             Spacer(Modifier.height(12.dp))
             AsyncImage(
                 model = ImageRequest.Builder(context)
-                    .data("file:///android_asset/${row!!.gifAssetPath}")
+                    .data("file:///android_asset/${row!!.pngAssetPath}")
                     .crossfade(true)
                     .build(),
                 imageLoader = gifLoader,

@@ -125,6 +125,7 @@ abstract class AppDatabase : RoomDatabase() {
             CoroutineScope(Dispatchers.IO).launch {
                 val database = getInstance(appContext)
 
+                // 7 dias
                 database.weekDayDao().upsertAll(
                     listOf(
                         WeekDayEntity(1, "Segunda"),
@@ -137,6 +138,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 )
 
+                // Streak padrão
                 database.streakDao().upsert(
                     StreakEntity(
                         id = 1,
@@ -145,6 +147,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 )
 
+                // Settings padrão
                 database.settingsDao().upsert(
                     SettingsEntity(
                         id = 1,
@@ -153,17 +156,112 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 )
 
+                // Exercícios seed (PADRONIZADOS)
                 database.exerciseDao().upsertAll(
                     listOf(
-                        ExerciseEntity(name = "Flexão de braço", muscleGroup = "Peito", gifAssetPath = "gifs/pushup.gif"),
-                        ExerciseEntity(name = "Agachamento livre", muscleGroup = "Pernas", gifAssetPath = "gifs/squat.gif"),
-                        ExerciseEntity(name = "Prancha", muscleGroup = "Core", gifAssetPath = "gifs/plank.gif"),
-                        ExerciseEntity(name = "Remada unilateral", muscleGroup = "Costas", gifAssetPath = "gifs/one_arm_row.gif"),
-                        ExerciseEntity(name = "Desenvolvimento com halteres", muscleGroup = "Ombros", gifAssetPath = "gifs/dumbbell_press.gif"),
-                        ExerciseEntity(name = "Rosca direta", muscleGroup = "Bíceps", gifAssetPath = "gifs/biceps_curl.gif"),
-                        ExerciseEntity(name = "Tríceps testa", muscleGroup = "Tríceps", gifAssetPath = "gifs/skullcrusher.gif")
+                        // ===== PEITO =====
+                        ExerciseEntity(name = "Supino reto (barra)", muscleGroup = "Peito", pngAssetPath = "images/supinoReto.png"),
+                        ExerciseEntity(name = "Supino reto (halteres)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Supino inclinado (barra)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Supino inclinado (halteres)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Supino declinado", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Crucifixo reto", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Crucifixo inclinado", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Peck deck (voador)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Crossover (polia alta)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Crossover (polia baixa)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Flexão de braço", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Flexão diamante", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Pullover (halter)", muscleGroup = "Peito", pngAssetPath = ""),
+                        ExerciseEntity(name = "Supino máquina", muscleGroup = "Peito", pngAssetPath = ""),
+
+                        // ===== COSTAS =====
+                        ExerciseEntity(name = "Puxada na frente (barra)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Puxada aberta", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Puxada neutra", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Puxada supinada", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Barra fixa (assistida)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remada baixa (cabo)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remada curvada (barra)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remada unilateral (halter)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remada cavalinho (T-bar)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remada máquina", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Pullover (cabo)", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Hiperextensão lombar", muscleGroup = "Costas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Puxada máquina (neutra)", muscleGroup = "Costas", pngAssetPath = ""),
+
+                        // ===== OMBROS =====
+                        ExerciseEntity(name = "Desenvolvimento militar (barra)", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Desenvolvimento (halteres)", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Desenvolvimento máquina", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Arnold press", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Elevação lateral", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Elevação lateral no cabo", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Elevação frontal", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Crucifixo inverso (peck deck)", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Face pull (cabo)", muscleGroup = "Ombros", pngAssetPath = ""),
+                        ExerciseEntity(name = "Encolhimento (halteres)", muscleGroup = "Ombros", pngAssetPath = ""),
+
+                        // ===== BÍCEPS =====
+                        ExerciseEntity(name = "Rosca direta (barra)", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca direta (barra W)", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca alternada (halteres)", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca martelo", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca concentrada", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca Scott", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca no cabo (barra)", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca no cabo (corda)", muscleGroup = "Bíceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Rosca 21", muscleGroup = "Bíceps", pngAssetPath = ""),
+
+                        // ===== TRÍCEPS =====
+                        ExerciseEntity(name = "Tríceps pulley (barra)", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Tríceps corda", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Tríceps francês (halter)", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Tríceps testa (barra W)", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Tríceps coice (kickback)", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Mergulho no banco", muscleGroup = "Tríceps", pngAssetPath = ""),
+                        ExerciseEntity(name = "Paralelas (assistida)", muscleGroup = "Tríceps", pngAssetPath = ""),
+
+                        // ===== PERNAS (inclui glúteos/posterior/panturrilha/adutores) =====
+                        ExerciseEntity(name = "Agachamento livre", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Agachamento no Smith", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Agachamento sumô", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Leg press 45°", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Leg press horizontal", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Cadeira extensora", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Cadeira flexora", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Mesa flexora", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Hack squat", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Afundo (halteres)", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Passada (walking lunge)", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Stiff", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Terra romeno", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Terra (tradicional)", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Elevação pélvica (hip thrust)", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Glúteo no cabo (kickback)", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Cadeira abdutora", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Cadeira adutora", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Panturrilha em pé", muscleGroup = "Pernas", pngAssetPath = ""),
+                        ExerciseEntity(name = "Panturrilha sentada", muscleGroup = "Pernas", pngAssetPath = ""),
+
+                        // ===== CORE/ABDÔMEN (junto) =====
+                        ExerciseEntity(name = "Prancha", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Prancha lateral", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Abdominal crunch", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Infra (elevação de pernas)", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Abdominal na polia (cable crunch)", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Russian twist", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Dead bug", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+                        ExerciseEntity(name = "Mountain climber", muscleGroup = "Core/Abdômen", pngAssetPath = ""),
+
+                        // ===== CARDIO =====
+                        ExerciseEntity(name = "Esteira (caminhada/corrida)", muscleGroup = "Cardio", pngAssetPath = ""),
+                        ExerciseEntity(name = "Bike ergométrica", muscleGroup = "Cardio", pngAssetPath = ""),
+                        ExerciseEntity(name = "Elíptico", muscleGroup = "Cardio", pngAssetPath = ""),
+                        ExerciseEntity(name = "Remo ergômetro", muscleGroup = "Cardio", pngAssetPath = "")
                     )
                 )
+
             }
         }
     }
