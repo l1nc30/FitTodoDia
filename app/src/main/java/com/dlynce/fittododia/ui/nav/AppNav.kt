@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.dlynce.fittododia.settings.SettingsViewModel
 import com.dlynce.fittododia.ui.screens.AddExerciseScreen
 import com.dlynce.fittododia.ui.screens.AgendaScreen
 import com.dlynce.fittododia.ui.screens.EditWorkoutScreen
@@ -16,7 +17,9 @@ import com.dlynce.fittododia.ui.screens.ProgressoScreen
 import com.dlynce.fittododia.ui.screens.TreinoScreen
 
 @Composable
-fun AppNav() {
+fun AppNav(
+    settingsViewModel: SettingsViewModel
+) {
     val navController = rememberNavController()
 
     AppScaffold(navController = navController) {
@@ -53,7 +56,11 @@ fun AppNav() {
             }
 
             composable(Route.Progresso.path) { ProgressoScreen() }
-            composable(Route.Perfil.path) { PerfilScreen() }
+
+            // ✅ aqui passa o SettingsViewModel pro Perfil
+            composable(Route.Perfil.path) {
+                PerfilScreen(settingsViewModel = settingsViewModel)
+            }
 
             // --- Editar treino do dia ---
             composable(
@@ -68,7 +75,6 @@ fun AppNav() {
                     onOpenLibrary = {
                         navController.navigate(Route.Library.create(dayId))
                     }
-                    // onEditRow fica opcional no seu EditWorkoutScreen atual
                 )
             }
 

@@ -17,3 +17,7 @@ val NeonAmber = Color(0xFFFFC857)
 val TextPrimary = Color(0xFFEAF2FF)
 val TextSecondary = Color(0xFFA9B4C7)
 val Danger = Color(0xFFFF4D6D)
+
+
+val Purple792BEE = Color(0xFF792BEE)
+val LimeA0EE2B   = Color(0xFFA0EE2B)
