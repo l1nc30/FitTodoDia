@@ -15,13 +15,16 @@ import androidx.compose.material3.lightColorScheme
 
 
 private val DarkColors = darkColorScheme(
-    primary = NeonCyan,
-    onPrimary = Bg,
+    // ✅ roxo como cor principal do app (botões / seleção nav)
+    primary = Purple792BEE,
+    onPrimary = TextPrimary,
 
-    secondary = NeonPurple,
+    // ✅ verde-lima como secundária (XP, sucesso, destaques)
+    secondary = LimeA0EE2B,
     onSecondary = Bg,
 
-    tertiary = NeonGreen,
+    // ✅ cyan como terciária (detalhe/neon)
+    tertiary = NeonPurple,
     onTertiary = Bg,
 
     background = Bg,
@@ -39,33 +42,39 @@ private val DarkColors = darkColorScheme(
 )
 
 private val LightColors = lightColorScheme(
+    // Brand
     primary = Purple792BEE,
     onPrimary = androidx.compose.ui.graphics.Color.White,
 
     secondary = LimeA0EE2B,
-    onSecondary = androidx.compose.ui.graphics.Color.Black,
+    onSecondary = androidx.compose.ui.graphics.Color(0xFF0B0F16),
 
-    // bons “tons claros” pra cards/chips/realces
-    primaryContainer = androidx.compose.ui.graphics.Color(0xFFE9DCFF),
-    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF1D0033),
+    tertiary = NeonPurple,
+    onTertiary = androidx.compose.ui.graphics.Color.White,
 
-    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE9FFC9),
-    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF102000),
+    // Containers (tint neon “soft”)
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFFEDE4FF),   // roxo bem suave
+    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF1C1033),
 
-    background = androidx.compose.ui.graphics.Color(0xFFFAFAFF),
-    onBackground = androidx.compose.ui.graphics.Color(0xFF121212),
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE9FFD6), // verde suave
+    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF0D1A08),
 
-    surface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
-    onSurface = androidx.compose.ui.graphics.Color(0xFF121212),
+    // Base surfaces (frio, “futurista”, sem sujar)
+    background = androidx.compose.ui.graphics.Color(0xFFF7F8FC),         // off-white frio
+    onBackground = androidx.compose.ui.graphics.Color(0xFF0B0F16),
 
-    surfaceVariant = androidx.compose.ui.graphics.Color(0xFFF2F0F7),
-    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF4A4452),
+    surface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),           // branco único
+    onSurface = androidx.compose.ui.graphics.Color(0xFF0B0F16),
 
-    outline = androidx.compose.ui.graphics.Color(0xFFB9B2C3),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFFF1F3FA),    // cinza frio (chips/cards secundários)
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF2D3445),
+
+    outline = androidx.compose.ui.graphics.Color(0xFFD4D8E6),
 
     error = androidx.compose.ui.graphics.Color(0xFFB3261E),
     onError = androidx.compose.ui.graphics.Color.White
 )
+
 
 
 private val AppShapes = Shapes(

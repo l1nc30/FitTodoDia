@@ -1,6 +1,9 @@
 package com.dlynce.fittododia.ui.nav
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,17 +25,29 @@ fun AppNav(
 ) {
     val navController = rememberNavController()
 
-    AppScaffold(navController = navController) {
+    // helper: navegação de TAB (não empilha e preserva estado)
+    fun navigateTab(route: String) {
+        navController.navigate(route) {
+            launchSingleTop = true
+            restoreState = true
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+        }
+    }
+
+    AppScaffold(navController = navController) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Route.Home.path
+            startDestination = Route.Home.path,
+            modifier = Modifier.padding(innerPadding)
         ) {
             // --- Tabs principais ---
             composable(Route.Home.path) {
                 HomeScreen(
-                    onGoTreino = { navController.navigate(Route.Treino.path) },
-                    onGoAgenda = { navController.navigate(Route.Agenda.path) },
-                    onGoProgresso = { navController.navigate(Route.Progresso.path) }
+                    onGoTreino = { navigateTab(Route.Treino.path) },
+                    onGoAgenda = { navigateTab(Route.Agenda.path) },
+                    onGoProgresso = { navigateTab(Route.Progresso.path) }
                 )
             }
 
@@ -47,17 +62,14 @@ fun AppNav(
             composable(Route.Treino.path) {
                 TreinoScreen(
                     onNavigateToProgress = {
-                        navController.navigate(Route.Progresso.path) {
-                            launchSingleTop = true
-                            popUpTo(Route.Treino.path) { inclusive = true }
-                        }
+                        // Treino agora é TAB: não remova ele do backstack
+                        navigateTab(Route.Progresso.path)
                     }
                 )
             }
 
             composable(Route.Progresso.path) { ProgressoScreen() }
 
-            // ✅ aqui passa o SettingsViewModel pro Perfil
             composable(Route.Perfil.path) {
                 PerfilScreen(settingsViewModel = settingsViewModel)
             }
@@ -72,9 +84,7 @@ fun AppNav(
                 EditWorkoutScreen(
                     dayId = dayId,
                     onBack = { navController.popBackStack() },
-                    onOpenLibrary = {
-                        navController.navigate(Route.Library.create(dayId))
-                    }
+                    onOpenLibrary = { navController.navigate(Route.Library.create(dayId)) }
                 )
             }
 

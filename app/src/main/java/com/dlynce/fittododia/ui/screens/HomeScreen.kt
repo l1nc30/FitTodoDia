@@ -3,26 +3,45 @@
 package com.dlynce.fittododia.ui.screens
 
 import android.app.Application
+import android.os.Build
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import android.graphics.RenderEffect as AndroidRenderEffect
+import android.graphics.Shader as AndroidShader
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dlynce.fittododia.data.db.AppDatabase
 import com.dlynce.fittododia.data.repo.WeekDayRepository
 import com.dlynce.fittododia.ui.components.FtdBadge
-import com.dlynce.fittododia.ui.components.FtdCard
 import com.dlynce.fittododia.ui.theme.TextSecondary
 import kotlinx.coroutines.flow.*
 import java.text.Normalizer
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Calendar
 import kotlin.math.max
 import kotlin.math.min
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.luminance
+
 
 data class HomeUiState(
     val dayId: Int = 1,
@@ -177,42 +196,72 @@ fun HomeScreen(
     val vm: HomeViewModel = viewModel()
     val state by vm.uiState.collectAsState()
 
+    val perLevel = 500
+    val inLevel = (state.xpTotal.coerceAtLeast(0) % perLevel)
+    val xpText = "$inLevel/$perLevel XP"
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                title = { Text("FitTodoDia") },
-                actions = { TextButton(onClick = onGoProgresso) { Text("Progresso") } }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Header minimalista (vibe da referência)
+            Text(
+                "FitTodoDia",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+                   Text(
+                greetingMessage(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary
+            )
 
-            FtdCard(
-                title = state.headline,
-                subtitle = state.subline
+            Spacer(Modifier.height(8.dp))
+
+            // ✅ Hierarquia: anel de progresso no topo
+            ProgressRing(
+                progress = state.levelProgress.coerceIn(0f, 1f),
+                levelText = "Level ${state.level}",
+                xpText = xpText,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FtdBadge(text = "Nível ${state.level}")
-                    FtdBadge(text = "${state.streakDays}d streak")
-                    FtdBadge(text = if (state.missionDone) "Missão ✅" else "Missão ⏳")
-                }
+                HomeChip(text = "${state.streakDays}d streak")
+                Spacer(Modifier.width(8.dp))
+                HomeChip(text = if (state.missionDone) "Missão ✅" else "Missão ⏳")
+                Spacer(Modifier.width(8.dp))
+                HomeChip(text = "XP ${state.xpTotal}")
             }
 
-            FtdCard(
-                title = "Hoje • ${state.dayLabel}",
-                subtitle = if (state.hasWorkout) "Treino do dia pronto. Foco em qualidade." else "Sem treino cadastrado."
-            ) {
-                Text(state.workoutName, style = MaterialTheme.typography.headlineSmall)
+
+            Spacer(Modifier.height(4.dp))
+
+            // ✅ Card com “glass” + CTA dominante
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Text(state.headline, style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(2.dp))
+                Text(state.subline, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+
+                Spacer(Modifier.height(10.dp))
+
+                Text("Hoje • ${state.dayLabel}", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    if (state.hasWorkout) state.workoutName else "Sem treino cadastrado",
+                    style = MaterialTheme.typography.headlineSmall
+                )
 
                 val line = if (state.hasWorkout) {
                     "${state.totalExercisesToday} exercícios • sem pressa"
@@ -221,48 +270,193 @@ fun HomeScreen(
                 }
                 Text(line, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
 
-                Button(
-                    onClick = onGoTreino,
+                // ✅ CTA mais chamativo
+                PrimaryCtaButton(
+                    text = if (state.hasWorkout) "Iniciar Treino" else "Criar treino na Agenda",
                     enabled = state.hasWorkout,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (state.hasWorkout) "Começar treino" else "Criar treino na Agenda")
-                }
+                    onClick = { if (state.hasWorkout) onGoTreino() else onGoAgenda() }
+                )
+
+
+                Spacer(Modifier.height(10.dp))
 
                 OutlinedButton(
                     onClick = onGoAgenda,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) { Text("Abrir Agenda") }
-            }
 
-            FtdCard(
-                title = "Seu progresso",
-                subtitle = "XP e níveis recompensam constância (não volume)."
-            ) {
-                Text("${state.xpTotal} XP total", style = MaterialTheme.typography.titleMedium)
-                LinearProgressIndicator(
-                    progress = state.levelProgress.coerceIn(0f, 1f),
+                Spacer(Modifier.height(6.dp))
+
+                TextButton(
+                    onClick = onGoProgresso,
                     modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    "Nível ${state.level} • faltam ${xpToNextLevel(state.xpTotal)} XP para subir",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Button(onClick = onGoProgresso, modifier = Modifier.fillMaxWidth()) {
-                    Text("Ver detalhes")
-                }
+                ) { Text("Ver detalhes do progresso") }
             }
         }
     }
 }
 
-// ---------- Helpers ----------
+// ---------- UI Helpers (Home) ----------
+
+private fun greetingMessage(): String {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when (hour) {
+        in 5..11 -> "Bom dia! Bora treinar?"
+        in 12..17 -> "Boa tarde! Bora manter o ritmo?"
+        else -> "Boa noite! Um treino leve já resolve."
+    }
+}
+
+@Composable
+private fun ProgressRing(
+    progress: Float,
+    levelText: String,
+    xpText: String,
+    modifier: Modifier = Modifier
+) {
+    val ringBg = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f)
+    val ringFg = MaterialTheme.colorScheme.secondary
+    val ringAccent = MaterialTheme.colorScheme.primary
+
+    Box(
+        modifier = modifier.size(220.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val stroke = Stroke(width = 18.dp.toPx(), cap = StrokeCap.Round)
+
+            val inset = 18.dp.toPx()
+            val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
+            val topLeft = Offset(inset, inset)
+
+            drawArc(
+                color = ringBg,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = stroke
+            )
+
+            drawArc(
+                color = ringFg,
+                startAngle = -90f,
+                sweepAngle = 360f * progress.coerceIn(0f, 1f),
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = stroke
+            )
+
+            // acento roxo sutil (dá vibe premium)
+            drawArc(
+                color = ringAccent.copy(alpha = 0.85f),
+                startAngle = -90f,
+                sweepAngle = 16f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = stroke
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(levelText, style = MaterialTheme.typography.headlineSmall)
+            Text(xpText, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        }
+    }
+}
+
+@Composable
+private fun GlassCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val shape = RoundedCornerShape(20.dp)
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+
+    val container = if (isLight) {
+        // ✅ sólido no claro
+        MaterialTheme.colorScheme.surface
+    } else {
+        // ✅ glass no escuro
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.58f)
+    }
+
+    val border = if (isLight) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = container,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 6.dp else 14.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, border)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            content = content
+        )
+    }
+}
+
+
+@Composable
+private fun PrimaryCtaButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        Text(text, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+@Composable
+private fun HomeChip(text: String) {
+    val shape = RoundedCornerShape(999.dp)
+    val bg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
+
+    Surface(
+        shape = shape,
+        color = bg,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, border)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+// ---------- Helpers (lógica) ----------
 
 private fun estimateXpSafe(exercises: Int, plannedSets: Int, doneSets: Int): Int {
     val base = 90
