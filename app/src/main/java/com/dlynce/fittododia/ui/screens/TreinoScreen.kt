@@ -8,14 +8,18 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -34,17 +38,10 @@ import com.dlynce.fittododia.data.db.entities.DailyMissionEntity
 import com.dlynce.fittododia.data.db.entities.WorkoutSessionEntity
 import com.dlynce.fittododia.data.db.entities.WorkoutSessionExerciseEntity
 import com.dlynce.fittododia.data.repo.WeekDayRepository
+import com.dlynce.fittododia.ui.theme.Surface2
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.Normalizer
 import java.time.DayOfWeek
@@ -359,8 +356,12 @@ fun TreinoScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 title = {
                     Column {
                         Text("Treino", style = MaterialTheme.typography.titleLarge)
@@ -379,15 +380,11 @@ fun TreinoScreen(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (errorMsg != null) {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(errorMsg!!, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
+                SurfaceCard { Text(errorMsg!!, style = MaterialTheme.typography.bodySmall) }
             }
 
             if (!state.hasWorkout) {
@@ -399,7 +396,7 @@ fun TreinoScreen(
             }
 
             when (mode) {
-                TreinoMode.Overview -> OverviewViewPolished(
+                TreinoMode.Overview -> OverviewViewHarmonized(
                     workoutName = state.workoutName,
                     rows = state.rows,
                     onStart = {
@@ -409,7 +406,7 @@ fun TreinoScreen(
                     }
                 )
 
-                TreinoMode.Focus -> FocusViewPolished(
+                TreinoMode.Focus -> FocusViewHarmonizedFixedActions(
                     workoutName = state.workoutName,
                     rows = state.rows,
                     focusIndex = focusIndex.coerceIn(0, (state.rows.size - 1).coerceAtLeast(0)),
@@ -469,7 +466,6 @@ fun TreinoScreen(
                         rows = state.rows,
                         onSuccess = {
                             errorMsg = null
-                            // snack + navega pro progresso
                             val job = scope.launch {
                                 snackbar.showSnackbar("Treino salvo! +$xpNow XP ✅")
                             }
@@ -492,48 +488,64 @@ fun TreinoScreen(
     }
 }
 
-// -------------------- UI (polida) --------------------
+// -------------------- UI (harmonizada com imagens) --------------------
 
 @Composable
-private fun EmptyStateCard(title: String, subtitle: String) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+private fun SurfaceCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.16f else 0.24f)
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 2.dp else 10.dp,
+        border = BorderStroke(1.dp, border)
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            content()
         }
     }
 }
 
 @Composable
-private fun OverviewViewPolished(
+private fun EmptyStateCard(title: String, subtitle: String) {
+    SurfaceCard {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun OverviewViewHarmonized(
     workoutName: String,
     rows: List<WorkoutExerciseRow>,
     onStart: () -> Unit
 ) {
     val plannedSets = rows.sumOf { it.sets.coerceAtLeast(0) }
 
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(workoutName, style = MaterialTheme.typography.titleLarge)
-            Text(
-                "${rows.size} exercícios • $plannedSets séries planejadas",
-                style = MaterialTheme.typography.bodySmall
-            )
+    SurfaceCard {
+        Text(workoutName, style = MaterialTheme.typography.titleLarge)
+        Text(
+            "${rows.size} exercícios • $plannedSets séries planejadas",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
 
-            Button(
-                onClick = onStart,
-                enabled = rows.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Iniciar treino")
-            }
+        Button(
+            onClick = onStart,
+            enabled = rows.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
+        ) {
+            Text("Iniciar treino")
         }
     }
 
-    Spacer(Modifier.height(14.dp))
-
     Text("Exercícios do dia", style = MaterialTheme.typography.titleMedium)
-    Spacer(Modifier.height(8.dp))
 
     if (rows.isEmpty()) {
         EmptyStateCard(
@@ -545,20 +557,63 @@ private fun OverviewViewPolished(
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(rows, key = { it.id }) { r ->
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(r.exerciseName, style = MaterialTheme.typography.titleMedium)
-                    if (r.muscleGroup.isNotBlank()) Text(r.muscleGroup, style = MaterialTheme.typography.bodySmall)
-                    val rest = r.restSeconds?.let { " • descanso ${it}s" } ?: ""
-                    Text("${r.sets}x${r.reps}$rest", style = MaterialTheme.typography.bodySmall)
-                }
-            }
+            ExerciseRowPreview(
+                name = r.exerciseName,
+                group = r.muscleGroup,
+                detail = buildString {
+                    append("${r.sets}x${r.reps}")
+                    r.restSeconds?.let { append(" • descanso ${it}s") }
+                },
+                pngAssetPath = r.pngAssetPath
+            )
         }
     }
 }
 
 @Composable
-private fun FocusViewPolished(
+private fun ExerciseRowPreview(
+    name: String,
+    group: String,
+    detail: String,
+    pngAssetPath: String
+) {
+    SurfaceCard {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ExerciseThumbSlot(
+                pngAssetPath = pngAssetPath,
+                modifier = Modifier.size(72.dp)
+            )
+
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(name, style = MaterialTheme.typography.titleMedium)
+                if (group.isNotBlank()) {
+                    Text(
+                        group,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+                    )
+                }
+                Text(
+                    detail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ✅ Versão com AÇÕES FIXAS embaixo (não rolam com a tela)
+ * - Conteúdo rola
+ * - Botões ficam sempre acessíveis
+ * - Evita sobreposição e melhora usabilidade
+ */
+@Composable
+private fun FocusViewHarmonizedFixedActions(
     workoutName: String,
     rows: List<WorkoutExerciseRow>,
     focusIndex: Int,
@@ -583,98 +638,148 @@ private fun FocusViewPolished(
     val totalDone = rows.sumOf { r -> completedSets[r.id]?.count { it } ?: 0 }
     val overallProgress = if (totalPlanned <= 0) 0f else totalDone.toFloat() / totalPlanned.toFloat()
 
-    // Top summary (game-like)
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(workoutName, style = MaterialTheme.typography.titleMedium)
-            Text("Progresso do treino", style = MaterialTheme.typography.bodySmall)
-            LinearProgressIndicator(
-                progress = overallProgress.coerceIn(0f, 1f),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text("$totalDone / $totalPlanned séries", style = MaterialTheme.typography.bodySmall)
-        }
-    }
-
-    Spacer(Modifier.height(12.dp))
-
     val gifLoader = rememberGifImageLoader()
-    val context = LocalContext.current
 
-    AnimatedContent(
-        targetState = focusIndex,
-        transitionSpec = {
-            (fadeIn() togetherWith fadeOut()).using(SizeTransform(clip = false))
-        },
-        label = "exerciseSwap"
-    ) { idx ->
-        val current = rows[idx]
-        val doneList = completedSets[current.id] ?: List(current.sets.coerceAtLeast(1)) { false }
-        val doneCount = doneList.count { it }
-        val suggestedRest = current.restSeconds ?: 60
-        val perExProgress = if (doneList.isEmpty()) 0f else doneCount.toFloat() / doneList.size.toFloat()
+    // altura aproximada do bloco fixo de ações (pra dar padding no conteúdo rolável)
+    val actionsBlockHeight = 140.dp
 
-        Card(Modifier.fillMaxWidth()) {
-            Column(
-                Modifier
-                    .padding(14.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+    Box(Modifier.fillMaxSize()) {
+
+        // ✅ Conteúdo rolável
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = actionsBlockHeight + 18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header progresso
+            SurfaceCard {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Exercício ${idx + 1}/${rows.size}", style = MaterialTheme.typography.bodySmall)
-                    Text("+${estimateXpSafe(rows.size, totalPlanned, totalDone)} XP (estim.)", style = MaterialTheme.typography.bodySmall)
+                    Column {
+                        Text(workoutName, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Progresso do treino",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                    Text("${(overallProgress * 100).toInt()}%", style = MaterialTheme.typography.titleMedium)
                 }
 
-                Text(current.exerciseName, style = MaterialTheme.typography.headlineSmall)
-                if (current.muscleGroup.isNotBlank()) Text(current.muscleGroup, style = MaterialTheme.typography.bodySmall)
-
-                if (current.pngAssetPath.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data("file:///android_asset/${current.pngAssetPath}")
-                            .crossfade(true)
-                            .build(),
-                        imageLoader = gifLoader,
-                        contentDescription = "Demonstração do exercício",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                    )
-                }
-
-                val restTxt = current.restSeconds?.let { " • descanso ${it}s" } ?: ""
-                Text("${current.sets}x${current.reps}$restTxt", style = MaterialTheme.typography.bodyMedium)
-
-                // Per-exercise progress
                 LinearProgressIndicator(
-                    progress = perExProgress.coerceIn(0f, 1f),
-                    modifier = Modifier.fillMaxWidth()
+                    progress = overallProgress.coerceIn(0f, 1f),
+                    modifier = Modifier.fillMaxWidth().height(8.dp),
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
 
-                Text("$doneCount / ${doneList.size} séries concluídas", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "$totalDone / $totalPlanned séries",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
 
-                // Sets checklist
-                doneList.forEachIndexed { i, checked ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Série ${i + 1}", style = MaterialTheme.typography.bodyMedium)
-                        Checkbox(checked = checked, onCheckedChange = { onToggleSet(current.id, i) })
+            AnimatedContent(
+                targetState = focusIndex,
+                transitionSpec = { (fadeIn() togetherWith fadeOut()).using(SizeTransform(clip = false)) },
+                label = "exerciseSwap"
+            ) { idx ->
+                val current = rows[idx]
+                val doneList = completedSets[current.id] ?: List(current.sets.coerceAtLeast(1)) { false }
+                val doneCount = doneList.count { it }
+                val suggestedRest = current.restSeconds ?: 60
+                val perExProgress =
+                    if (doneList.isEmpty()) 0f else doneCount.toFloat() / doneList.size.toFloat()
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                    // HERO
+                    SurfaceCard {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                "Exercício ${idx + 1}/${rows.size}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                "+${estimateXpSafe(rows.size, totalPlanned, totalDone)} XP (estim.)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+
+                        Text(current.exerciseName, style = MaterialTheme.typography.headlineSmall)
+
+                        if (current.muscleGroup.isNotBlank()) {
+                            AssistChip(
+                                onClick = {},
+                                label = { Text(current.muscleGroup) },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            )
+                        }
+
+                        ExerciseHeroSlot(
+                            pngAssetPath = current.pngAssetPath,
+                            imageLoader = gifLoader,
+                            modifier = Modifier.fillMaxWidth().height(240.dp)
+                        )
+
+                        val restTxt = current.restSeconds?.let { " • descanso ${it}s" } ?: ""
+                        Text("${current.sets}x${current.reps}$restTxt", style = MaterialTheme.typography.bodyMedium)
+
+                        LinearProgressIndicator(
+                            progress = perExProgress.coerceIn(0f, 1f),
+                            modifier = Modifier.fillMaxWidth().height(8.dp),
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        Text(
+                            "$doneCount / ${doneList.size} séries concluídas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
                     }
-                }
 
-                // Rest timer card
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // CHECKLIST
+                    SurfaceCard {
+                        Text("Séries", style = MaterialTheme.typography.titleMedium)
+                        doneList.forEachIndexed { i, checked ->
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Série ${i + 1}", style = MaterialTheme.typography.bodyMedium)
+                                Checkbox(checked = checked, onCheckedChange = { onToggleSet(current.id, i) })
+                            }
+                        }
+                    }
+
+                    // DESCANSO
+                    SurfaceCard {
                         Text("Descanso", style = MaterialTheme.typography.titleMedium)
 
                         if (timer.initialSeconds <= 0) {
-                            Text("Sugestão: ${formatMmSs(suggestedRest)}", style = MaterialTheme.typography.bodySmall)
-                            Button(onClick = { onStartRest(suggestedRest) }, modifier = Modifier.fillMaxWidth()) {
-                                Text("Iniciar descanso")
-                            }
+                            Text(
+                                "Sugestão: ${formatMmSs(suggestedRest)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                            Button(
+                                onClick = { onStartRest(suggestedRest) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            ) { Text("Iniciar descanso") }
                         } else {
                             Text(formatMmSs(timer.remainingSeconds), style = MaterialTheme.typography.headlineSmall)
-                            if (timer.finished) Text("Descanso concluído ✅", style = MaterialTheme.typography.bodySmall)
+                            if (timer.finished) {
+                                Text(
+                                    "Descanso concluído ✅",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 OutlinedButton(onClick = onPauseResume, modifier = Modifier.weight(1f)) {
@@ -686,17 +791,150 @@ private fun FocusViewPolished(
                         }
                     }
                 }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = onBackToList, modifier = Modifier.weight(1f)) { Text("Lista") }
-                    OutlinedButton(onClick = onPrev, enabled = idx > 0, modifier = Modifier.weight(1f)) { Text("Anterior") }
-                    Button(onClick = onNext, enabled = idx < rows.lastIndex, modifier = Modifier.weight(1f)) { Text("Próximo") }
-                }
-
-                Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
-                    Text("Finalizar treino")
-                }
             }
+        }
+
+        // ✅ AÇÕES FIXAS (sempre visíveis)
+        FixedActionBar(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+            canPrev = focusIndex > 0,
+            canNext = focusIndex < rows.lastIndex,
+            onBackToList = onBackToList,
+            onPrev = onPrev,
+            onNext = onNext,
+            onFinish = onFinish
+        )
+    }
+}
+
+@Composable
+private fun FixedActionBar(
+    modifier: Modifier = Modifier,
+    canPrev: Boolean,
+    canNext: Boolean,
+    onBackToList: () -> Unit,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
+    onFinish: () -> Unit
+) {
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.16f else 0.24f)
+
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isLight) 2.dp else 0.dp,
+        shadowElevation = if (isLight) 6.dp else 16.dp,
+        border = BorderStroke(1.dp, border),
+        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onBackToList,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp)
+                ) { Text("Lista") }
+
+                OutlinedButton(
+                    onClick = onPrev,
+                    enabled = canPrev,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp)
+                ) { Text("Anterior") }
+
+                Button(
+                    onClick = onNext,
+                    enabled = canNext,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp)
+                ) { Text("Próximo") }
+            }
+
+            Button(
+                onClick = onFinish,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
+            ) { Text("Finalizar treino") }
+        }
+    }
+}
+
+@Composable
+private fun ExerciseHeroSlot(
+    pngAssetPath: String,
+    imageLoader: ImageLoader,
+    modifier: Modifier = Modifier
+) {
+    val ctx = LocalContext.current
+    val shape = RoundedCornerShape(18.dp)
+
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = Surface2, // ✅ escuro fixo
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.20f))
+    ) {
+        if (pngAssetPath.isBlank()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    "Sem imagem",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
+            }
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(ctx)
+                    .data("file:///android_asset/$pngAssetPath")
+                    .crossfade(true)
+                    .build(),
+                imageLoader = imageLoader,
+                contentDescription = "Demonstração do exercício",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExerciseThumbSlot(
+    pngAssetPath: String,
+    modifier: Modifier = Modifier
+) {
+    val ctx = LocalContext.current
+    val shape = RoundedCornerShape(16.dp)
+
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = Surface2, // ✅ escuro fixo
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.20f))
+    ) {
+        if (pngAssetPath.isBlank()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    "—",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
+            }
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(ctx)
+                    .data("file:///android_asset/$pngAssetPath")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }
@@ -705,7 +943,6 @@ private fun FocusViewPolished(
 
 /**
  * XP “seguro”: não incentiva exceder o planejado (cap no doneSets <= plannedSets)
- * (mesmo espírito do ProgressoScreen).
  */
 private fun estimateXpSafe(rows: Int, plannedSets: Int, doneSets: Int): Int {
     val base = 90
