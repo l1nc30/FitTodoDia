@@ -18,4 +18,11 @@ sealed class Route(val path: String) {
     data object AddExercise : Route("addExercise/{dayId}/{exerciseId}") {
         fun create(dayId: Int, exerciseId: Long) = "addExercise/$dayId/$exerciseId"
     }
+
+    data object Programs : Route("programs")
+
+    data object ProgramDetail : Route("programDetail/{programId}") {
+        fun create(programId: String) = "programDetail/$programId"
+    }
+
 }

@@ -3,6 +3,8 @@
 package com.dlynce.fittododia.ui.screens
 
 import android.app.Application
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
@@ -24,6 +26,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -354,6 +357,19 @@ fun TreinoScreen(
     var showFinishDialog by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
+    // ✅ Beep curto quando o descanso termina (finished vira true)
+    val toneGen = remember { ToneGenerator(AudioManager.STREAM_MUSIC, 100) }
+    DisposableEffect(Unit) {
+        onDispose { toneGen.release() }
+    }
+    var lastFinished by remember { mutableStateOf(false) }
+    LaunchedEffect(timer.finished) {
+        if (timer.finished && !lastFinished) {
+            toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 180)
+        }
+        lastFinished = timer.finished
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -417,8 +433,20 @@ fun TreinoScreen(
                         scope.launch { snackbar.showSnackbar("Voltando para a lista") }
                     },
                     onToggleSet = { rowId, setIdx ->
+                        // ✅ detectar se está marcando como "feito" (false -> true)
+                        val before = completed[rowId]?.getOrNull(setIdx) ?: false
+                        val willBeChecked = !before
+
                         vm.toggleSet(rowId, setIdx)
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
+                        // ✅ iniciar descanso automático quando marcar a série como feita
+                        if (willBeChecked) {
+                            val row = state.rows.firstOrNull { it.id == rowId }
+                            val rest = row?.restSeconds ?: 60
+                            vm.startRest(rest)
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
                     },
                     onPrev = { vm.goPrev(state.rows.size) },
                     onNext = { vm.goNext(state.rows.size) },
@@ -840,19 +868,19 @@ private fun FixedActionBar(
                 OutlinedButton(
                     onClick = onBackToList,
                     modifier = Modifier.weight(1f).heightIn(min = 50.dp)
-                ) { Text("Lista") }
+                ) { Text("Lista", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
 
                 OutlinedButton(
                     onClick = onPrev,
                     enabled = canPrev,
                     modifier = Modifier.weight(1f).heightIn(min = 50.dp)
-                ) { Text("Anterior") }
+                ) { Text("Ant<<", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
 
                 Button(
                     onClick = onNext,
                     enabled = canNext,
                     modifier = Modifier.weight(1f).heightIn(min = 50.dp)
-                ) { Text("Próximo") }
+                ) { Text("Próx>>", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
             }
 
             Button(

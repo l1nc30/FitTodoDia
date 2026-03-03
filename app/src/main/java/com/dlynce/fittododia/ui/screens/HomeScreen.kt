@@ -41,7 +41,7 @@ import kotlin.math.min
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.luminance
-
+import androidx.compose.foundation.clickable
 
 data class HomeUiState(
     val dayId: Int = 1,
@@ -191,7 +191,8 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 fun HomeScreen(
     onGoTreino: () -> Unit = {},
     onGoAgenda: () -> Unit = {},
-    onGoProgresso: () -> Unit = {}
+    onGoProgresso: () -> Unit = {},
+    onGoPrograms: () -> Unit = {}
 ) {
     val vm: HomeViewModel = viewModel()
     val state by vm.uiState.collectAsState()
@@ -244,6 +245,7 @@ fun HomeScreen(
                 Spacer(Modifier.width(8.dp))
                 HomeChip(text = "XP ${state.xpTotal}")
             }
+            Spacer(Modifier.height(4.dp))
 
 
             Spacer(Modifier.height(4.dp))
@@ -295,11 +297,70 @@ fun HomeScreen(
                     onClick = onGoProgresso,
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Ver detalhes do progresso") }
+                GlassActionCard(
+                    title = "Treinos prontos",
+                    subtitle = "Escolha um plano por objetivo e aplique na sua agenda.",
+                    badge = "NOVO",
+                    onClick = onGoPrograms,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
+@Composable
+private fun GlassActionCard(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    badge: String? = null
+) {
+    val shape = RoundedCornerShape(20.dp)
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
+    val container = if (isLight) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.58f)
+    }
+
+    val border = if (isLight) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
+    }
+
+    Surface(
+        modifier = modifier
+            .clip(shape)
+            .clickable(onClick = onClick),
+        shape = shape,
+        color = container,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 4.dp else 12.dp,
+        border = BorderStroke(1.dp, border)
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    if (!badge.isNullOrBlank()) {
+                        Spacer(Modifier.width(8.dp))
+                        FtdBadge(text = badge)
+                    }
+                }
+                Spacer(Modifier.height(2.dp))
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            }
+            Spacer(Modifier.width(10.dp))
+            Text("›", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
 // ---------- UI Helpers (Home) ----------
 
 private fun greetingMessage(): String {

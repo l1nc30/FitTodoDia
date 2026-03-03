@@ -18,6 +18,8 @@ import com.dlynce.fittododia.ui.screens.HomeScreen
 import com.dlynce.fittododia.ui.screens.PerfilScreen
 import com.dlynce.fittododia.ui.screens.ProgressoScreen
 import com.dlynce.fittododia.ui.screens.TreinoScreen
+import com.dlynce.fittododia.ui.screens.ProgramsScreen
+import com.dlynce.fittododia.ui.screens.ProgramDetailScreen
 
 @Composable
 fun AppNav(
@@ -47,7 +49,8 @@ fun AppNav(
                 HomeScreen(
                     onGoTreino = { navigateTab(Route.Treino.path) },
                     onGoAgenda = { navigateTab(Route.Agenda.path) },
-                    onGoProgresso = { navigateTab(Route.Progresso.path) }
+                    onGoProgresso = { navigateTab(Route.Progresso.path) },
+                    onGoPrograms = { navController.navigate(Route.Programs.path) }
                 )
             }
 
@@ -72,6 +75,26 @@ fun AppNav(
 
             composable(Route.Perfil.path) {
                 PerfilScreen(settingsViewModel = settingsViewModel)
+            }
+            composable(Route.Programs.path) {
+                ProgramsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenProgram = { programId ->
+                        navController.navigate(Route.ProgramDetail.create(programId))
+                    }
+                )
+            }
+
+            composable(
+                route = Route.ProgramDetail.path,
+                arguments = listOf(navArgument("programId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val programId = backStackEntry.arguments?.getString("programId") ?: ""
+                ProgramDetailScreen(
+                    programId = programId,
+                    onBack = { navController.popBackStack() },
+                    onAppliedGoAgenda = { navigateTab(Route.Agenda.path) }
+                )
             }
 
             // --- Editar treino do dia ---
