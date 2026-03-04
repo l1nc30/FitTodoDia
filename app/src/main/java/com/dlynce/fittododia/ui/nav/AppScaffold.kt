@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -48,7 +48,7 @@ fun AppScaffold(
 
         currentRoute.startsWith(Route.Treino.path) -> Route.Treino.path
         currentRoute.startsWith(Route.Progresso.path) -> Route.Progresso.path
-        currentRoute.startsWith(Route.Perfil.path) -> Route.Perfil.path
+        currentRoute.startsWith(Route.Settings.path) -> Route.Settings.path
 
         else -> Route.Home.path
     }
@@ -141,12 +141,12 @@ private fun BottomBar(
             )
 
             NavItem(
-                selected = selectedTopRoute == Route.Perfil.path,
-                label = "Perfil",
-                icon = { Icon(Icons.Filled.Person, contentDescription = "Perfil") },
+                selected = selectedTopRoute == Route.Settings.path,
+                label = "Config",
+                icon = { Icon(Icons.Filled.Settings, contentDescription = "Config") },
                 selectedColor = selectedColor,
                 unselectedColor = unselectedColor,
-                onClick = { onNavigate(Route.Perfil.path) }
+                onClick = { onNavigate(Route.Settings.path) }
             )
         }
     }

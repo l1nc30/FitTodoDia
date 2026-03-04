@@ -15,7 +15,7 @@ import com.dlynce.fittododia.ui.screens.AgendaScreen
 import com.dlynce.fittododia.ui.screens.EditWorkoutScreen
 import com.dlynce.fittododia.ui.screens.ExerciseLibraryScreen
 import com.dlynce.fittododia.ui.screens.HomeScreen
-import com.dlynce.fittododia.ui.screens.PerfilScreen
+import com.dlynce.fittododia.ui.screens.SettingsScreen
 import com.dlynce.fittododia.ui.screens.ProgressoScreen
 import com.dlynce.fittododia.ui.screens.TreinoScreen
 import com.dlynce.fittododia.ui.screens.ProgramsScreen
@@ -73,8 +73,8 @@ fun AppNav(
 
             composable(Route.Progresso.path) { ProgressoScreen() }
 
-            composable(Route.Perfil.path) {
-                PerfilScreen(settingsViewModel = settingsViewModel)
+            composable(Route.Settings.path) {
+                SettingsScreen(settingsViewModel = settingsViewModel)
             }
             composable(Route.Programs.path) {
                 ProgramsScreen(

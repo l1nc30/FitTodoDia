@@ -5,7 +5,7 @@ sealed class Route(val path: String) {
     data object Agenda : Route("agenda")
     data object Treino : Route("treino")
     data object Progresso : Route("progresso")
-    data object Perfil : Route("perfil")
+    data object Settings : Route("settings")
 
     data object EditWorkout : Route("editWorkout/{dayId}") {
         fun create(dayId: Int) = "editWorkout/$dayId"
