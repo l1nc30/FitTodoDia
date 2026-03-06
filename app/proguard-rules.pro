@@ -1,21 +1,44 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ── Stack traces legíveis no Crashlytics/logcat ──────────────────────────
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── Room ─────────────────────────────────────────────────────────────────
+# Entidades: mantém campos mapeados para colunas
+-keep class com.dlynce.fittododia.data.db.entities.** { *; }
+# DAOs gerados pelo KSP
+-keep interface com.dlynce.fittododia.data.db.dao.** { *; }
+# Classe de resultado de query personalizada
+-keep class com.dlynce.fittododia.data.db.dao.WorkoutExerciseRow { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── Kotlin Coroutines ─────────────────────────────────────────────────────
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── Kotlin Serialization (caso adicione no futuro) ────────────────────────
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+# ── DataStore Preferences ─────────────────────────────────────────────────
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+
+# ── WorkManager ───────────────────────────────────────────────────────────
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+# Worker de notificações do app
+-keep class com.dlynce.fittododia.notifications.TrainingReminderWorker { *; }
+
+# ── Coil (carregamento de imagens/GIFs) ───────────────────────────────────
+-dontwarn coil.**
+
+# ── Compose ───────────────────────────────────────────────────────────────
+# O compilador Compose já lida com a maioria; apenas garantir lambdas
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}

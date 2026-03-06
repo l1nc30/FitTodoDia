@@ -1,6 +1,7 @@
 package com.dlynce.fittododia.ui.nav
 
 sealed class Route(val path: String) {
+    data object Onboarding : Route("onboarding")
     data object Home : Route("home")
     data object Agenda : Route("agenda")
     data object Treino : Route("treino")
@@ -24,5 +25,4 @@ sealed class Route(val path: String) {
     data object ProgramDetail : Route("programDetail/{programId}") {
         fun create(programId: String) = "programDetail/$programId"
     }
-
 }

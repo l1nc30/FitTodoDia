@@ -2,7 +2,9 @@ package com.dlynce.fittododia.ui.nav
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,19 +17,23 @@ import com.dlynce.fittododia.ui.screens.AgendaScreen
 import com.dlynce.fittododia.ui.screens.EditWorkoutScreen
 import com.dlynce.fittododia.ui.screens.ExerciseLibraryScreen
 import com.dlynce.fittododia.ui.screens.HomeScreen
-import com.dlynce.fittododia.ui.screens.SettingsScreen
+import com.dlynce.fittododia.ui.screens.OnboardingScreen
 import com.dlynce.fittododia.ui.screens.ProgressoScreen
-import com.dlynce.fittododia.ui.screens.TreinoScreen
-import com.dlynce.fittododia.ui.screens.ProgramsScreen
 import com.dlynce.fittododia.ui.screens.ProgramDetailScreen
+import com.dlynce.fittododia.ui.screens.ProgramsScreen
+import com.dlynce.fittododia.ui.screens.SettingsScreen
+import com.dlynce.fittododia.ui.screens.TreinoScreen
 
 @Composable
 fun AppNav(
     settingsViewModel: SettingsViewModel
 ) {
     val navController = rememberNavController()
+    val onboardingDone by settingsViewModel.onboardingDone.collectAsStateWithLifecycle()
 
-    // helper: navegação de TAB (não empilha e preserva estado)
+    // startDestination: onboarding para novos usuários, home para quem já viu
+    val startDestination = if (onboardingDone) Route.Home.path else Route.Onboarding.path
+
     fun navigateTab(route: String) {
         navController.navigate(route) {
             launchSingleTop = true
@@ -41,9 +47,22 @@ fun AppNav(
     AppScaffold(navController = navController) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Route.Home.path,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
+
+            // --- Onboarding (só na primeira vez) ---
+            composable(Route.Onboarding.path) {
+                OnboardingScreen(
+                    onFinish = {
+                        settingsViewModel.completeOnboarding()
+                        navController.navigate(Route.Home.path) {
+                            popUpTo(Route.Onboarding.path) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             // --- Tabs principais ---
             composable(Route.Home.path) {
                 HomeScreen(
@@ -64,10 +83,7 @@ fun AppNav(
 
             composable(Route.Treino.path) {
                 TreinoScreen(
-                    onNavigateToProgress = {
-                        // Treino agora é TAB: não remova ele do backstack
-                        navigateTab(Route.Progresso.path)
-                    }
+                    onNavigateToProgress = { navigateTab(Route.Progresso.path) }
                 )
             }
 
@@ -76,6 +92,7 @@ fun AppNav(
             composable(Route.Settings.path) {
                 SettingsScreen(settingsViewModel = settingsViewModel)
             }
+
             composable(Route.Programs.path) {
                 ProgramsScreen(
                     onBack = { navController.popBackStack() },
@@ -97,13 +114,11 @@ fun AppNav(
                 )
             }
 
-            // --- Editar treino do dia ---
             composable(
                 route = Route.EditWorkout.path,
                 arguments = listOf(navArgument("dayId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val dayId = backStackEntry.arguments?.getInt("dayId") ?: 1
-
                 EditWorkoutScreen(
                     dayId = dayId,
                     onBack = { navController.popBackStack() },
@@ -111,13 +126,11 @@ fun AppNav(
                 )
             }
 
-            // --- Biblioteca (seleciona exercício) ---
             composable(
                 route = Route.Library.path,
                 arguments = listOf(navArgument("dayId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val dayId = backStackEntry.arguments?.getInt("dayId") ?: 1
-
                 ExerciseLibraryScreen(
                     dayId = dayId,
                     onBack = { navController.popBackStack() },
@@ -127,7 +140,6 @@ fun AppNav(
                 )
             }
 
-            // --- Configurar exercício e adicionar ao treino do dia ---
             composable(
                 route = Route.AddExercise.path,
                 arguments = listOf(
@@ -137,7 +149,6 @@ fun AppNav(
             ) { backStackEntry ->
                 val dayId = backStackEntry.arguments?.getInt("dayId") ?: 1
                 val exerciseId = backStackEntry.arguments?.getLong("exerciseId") ?: 0L
-
                 AddExerciseScreen(
                     dayId = dayId,
                     exerciseId = exerciseId,

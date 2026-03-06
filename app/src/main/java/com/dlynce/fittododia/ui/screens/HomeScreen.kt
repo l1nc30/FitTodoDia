@@ -3,26 +3,31 @@
 package com.dlynce.fittododia.ui.screens
 
 import android.app.Application
-import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import android.graphics.RenderEffect as AndroidRenderEffect
-import android.graphics.Shader as AndroidShader
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,18 +35,14 @@ import com.dlynce.fittododia.data.db.AppDatabase
 import com.dlynce.fittododia.data.repo.WeekDayRepository
 import com.dlynce.fittododia.ui.components.FtdBadge
 import com.dlynce.fittododia.ui.theme.TextSecondary
+import com.dlynce.fittododia.utils.*
 import kotlinx.coroutines.flow.*
-import java.text.Normalizer
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
-import kotlin.math.max
-import kotlin.math.min
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.foundation.clickable
+
+// -------------------- State --------------------
 
 data class HomeUiState(
     val dayId: Int = 1,
@@ -51,6 +52,7 @@ data class HomeUiState(
     val totalExercisesToday: Int = 0,
 
     val xpTotal: Int = 0,
+    val xpInLevel: Int = 0,
     val level: Int = 1,
     val levelProgress: Float = 0f,
 
@@ -58,7 +60,9 @@ data class HomeUiState(
     val missionDone: Boolean = false,
 
     val headline: String = "Hoje conta.",
-    val subline: String = "Consistência > intensidade."
+    val subline: String = "Consistência > intensidade.",
+
+    val isNewUser: Boolean = false
 )
 
 private data class TodayWorkoutInfo(
@@ -68,6 +72,8 @@ private data class TodayWorkoutInfo(
     val workoutName: String,
     val totalExercises: Int
 )
+
+// -------------------- ViewModel --------------------
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.getInstance(app)
@@ -92,33 +98,18 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             db.workoutDao().observeWorkoutByDay(dayId)
                 .flatMapLatest { workout ->
                     if (workout == null) {
-                        flowOf(
-                            TodayWorkoutInfo(
-                                dayId = dayId,
-                                dayLabel = dayLabel,
-                                hasWorkout = false,
-                                workoutName = "Sem treino",
-                                totalExercises = 0
-                            )
-                        )
+                        flowOf(TodayWorkoutInfo(dayId, dayLabel, false, "Sem treino", 0))
                     } else {
                         db.workoutExerciseDao().observeRowsByWorkout(workout.id)
                             .map { rows ->
-                                TodayWorkoutInfo(
-                                    dayId = dayId,
-                                    dayLabel = dayLabel,
-                                    hasWorkout = true,
-                                    workoutName = workout.name,
-                                    totalExercises = rows.size
-                                )
+                                TodayWorkoutInfo(dayId, dayLabel, true, workout.name, rows.size)
                             }
                     }
                 }
         }
 
     private val xpTotalFlow: Flow<Int> =
-        db.workoutSessionDao()
-            .observeAllSummaries()
+        db.workoutSessionDao().observeAllSummaries()
             .map { list ->
                 list.sumOf { row ->
                     estimateXpSafe(
@@ -127,43 +118,37 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                         doneSets = row.totalSetsDone
                     )
                 }
-            }
-            .distinctUntilChanged()
+            }.distinctUntilChanged()
 
     private val streakFlow: Flow<Int> =
-        db.workoutSessionDao()
-            .observeAllSummaries()
+        db.workoutSessionDao().observeAllSummaries()
             .flatMapLatest { flow { emit(db.workoutSessionDao().getDistinctDaysDesc()) } }
-            .map { daysDesc -> computeCurrentStreak(todayEpochDay, daysDesc) }
+            .map { computeCurrentStreak(todayEpochDay, it) }
             .distinctUntilChanged()
 
     private val missionDoneFlow: Flow<Boolean> =
-        db.workoutSessionDao()
-            .observeAllSummaries()
+        db.workoutSessionDao().observeAllSummaries()
             .flatMapLatest { flow { emit(db.dailyMissionDao().getByDate(todayEpochDay)?.completed == true) } }
             .distinctUntilChanged()
 
     val uiState: StateFlow<HomeUiState> =
-        combine(
-            todayWorkoutFlow,
-            xpTotalFlow,
-            streakFlow,
-            missionDoneFlow
-        ) { w: TodayWorkoutInfo, xp: Int, streak: Int, missionDone: Boolean ->
+        combine(todayWorkoutFlow, xpTotalFlow, streakFlow, missionDoneFlow
+        ) { w, xp, streak, missionDone ->
 
             val (level, progress) = xpToLevel(xp)
+            val perLevel = 500
+            val xpInLevel = xp % perLevel
 
             val headline = when {
-                missionDone -> "Missão concluída ✅"
-                streak >= 7 -> "Modo consistência: ON."
-                streak >= 3 -> "Ritmo forte. Mantém."
-                else -> "Hoje conta."
+                missionDone        -> "Missão concluída ✅"
+                streak >= 7        -> "Modo consistência: ON."
+                streak >= 3        -> "Ritmo forte. Mantém."
+                else               -> "Hoje conta."
             }
-
             val subline = when {
-                missionDone -> "Boa. Amanhã é só repetir o básico."
-                w.hasWorkout -> "Sem exagero: faz o treino de hoje e acabou."
-                else -> "Crie um treino na Agenda e destrave a missão."
+                missionDone        -> "Boa. Amanhã é só repetir o básico."
+                w.hasWorkout       -> "Sem exagero: faz o treino de hoje e acabou."
+                else               -> "Crie um treino na Agenda e destrave a missão."
             }
 
             HomeUiState(
@@ -173,19 +158,19 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 workoutName = w.workoutName,
                 totalExercisesToday = w.totalExercises,
                 xpTotal = xp,
+                xpInLevel = xpInLevel,
                 level = level,
                 levelProgress = progress,
                 streakDays = streak,
                 missionDone = missionDone,
                 headline = headline,
-                subline = subline
+                subline = subline,
+                isNewUser = xp == 0 && !w.hasWorkout
             )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            HomeUiState()
-        )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 }
+
+// -------------------- Screen --------------------
 
 @Composable
 fun HomeScreen(
@@ -197,171 +182,554 @@ fun HomeScreen(
     val vm: HomeViewModel = viewModel()
     val state by vm.uiState.collectAsState()
 
-    val perLevel = 500
-    val inLevel = (state.xpTotal.coerceAtLeast(0) % perLevel)
-    val xpText = "$inLevel/$perLevel XP"
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(Modifier.height(4.dp))
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Header minimalista (vibe da referência)
+        // ── Header ───────────────────────────────────────────────────────────
+        HomeHeader(greeting = greetingMessage())
+
+        // ── Novo usuário: onboarding suave ───────────────────────────────────
+        if (state.isNewUser) {
+            NewUserCard(onGoAgenda = onGoAgenda, onGoPrograms = onGoPrograms)
+        } else {
+            // ── Card principal: treino de hoje + status + ações ───────────────
+            TodayCard(
+                state = state,
+                onGoTreino = onGoTreino,
+                onGoAgenda = onGoAgenda
+            )
+
+            // ── Barra de XP compacta ──────────────────────────────────────────
+            XpBar(
+                level = state.level,
+                xpInLevel = state.xpInLevel,
+                progress = state.levelProgress,
+                streakDays = state.streakDays,
+                missionDone = state.missionDone,
+                onGoProgresso = onGoProgresso
+            )
+
+            // ── Treinos prontos ───────────────────────────────────────────────
+            QuickNavCard(
+                title = "Treinos prontos",
+                subtitle = "Escolha um plano por objetivo e aplique na sua agenda.",
+                badge = "NOVO",
+                icon = Icons.Filled.EmojiEvents,
+                onClick = onGoPrograms
+            )
+
+            // ── Atalho para progresso ─────────────────────────────────────────
+            QuickNavCard(
+                title = "Ver progresso",
+                subtitle = "Histórico, nível, streak e totais.",
+                icon = Icons.Filled.Star,
+                onClick = onGoProgresso
+            )
+        }
+
+        Spacer(Modifier.height(80.dp))
+    }
+}
+
+// -------------------- Header --------------------
+
+@Composable
+private fun HomeHeader(greeting: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
             Text(
                 "FitTodoDia",
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-                   Text(
-                greetingMessage(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+            Text(
+                greeting,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
-
-            Spacer(Modifier.height(8.dp))
-
-            // ✅ Hierarquia: anel de progresso no topo
-            ProgressRing(
-                progress = state.levelProgress.coerceIn(0f, 1f),
-                levelText = "Level ${state.level}",
-                xpText = xpText,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+        }
+        // Badge de dia da semana
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primaryContainer
+        ) {
+            Text(
+                todayShortLabel(),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
+        }
+    }
+}
 
+// -------------------- Today Card --------------------
+
+@Composable
+private fun TodayCard(
+    state: HomeUiState,
+    onGoTreino: () -> Unit,
+    onGoAgenda: () -> Unit
+) {
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val accentColor = if (state.missionDone)
+        MaterialTheme.colorScheme.secondary
+    else
+        MaterialTheme.colorScheme.primary
+    val border = if (state.missionDone)
+        accentColor.copy(alpha = 0.40f)
+    else
+        MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.20f else 0.32f)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 6.dp else 14.dp,
+        border = BorderStroke(1.dp, border)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+
+            // Motivacional + dia
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                HomeChip(text = "${state.streakDays}d streak")
-                Spacer(Modifier.width(8.dp))
-                HomeChip(text = if (state.missionDone) "Missão ✅" else "Missão ⏳")
-                Spacer(Modifier.width(8.dp))
-                HomeChip(text = "XP ${state.xpTotal}")
-            }
-            Spacer(Modifier.height(4.dp))
-
-
-            Spacer(Modifier.height(4.dp))
-
-            // ✅ Card com “glass” + CTA dominante
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Text(state.headline, style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(2.dp))
-                Text(state.subline, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-
-                Spacer(Modifier.height(10.dp))
-
-                Text("Hoje • ${state.dayLabel}", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    if (state.hasWorkout) state.workoutName else "Sem treino cadastrado",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                val line = if (state.hasWorkout) {
-                    "${state.totalExercisesToday} exercícios • sem pressa"
-                } else {
-                    "Abra a Agenda e monte um treino simples."
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        state.headline,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        state.subline,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
                 }
-                Text(line, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Spacer(Modifier.width(8.dp))
+                // Chip de dia
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Text(
+                        state.dayLabel,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
-                Spacer(Modifier.height(12.dp))
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
 
-                // ✅ CTA mais chamativo
-                PrimaryCtaButton(
-                    text = if (state.hasWorkout) "Iniciar Treino" else "Criar treino na Agenda",
-                    enabled = state.hasWorkout,
-                    onClick = { if (state.hasWorkout) onGoTreino() else onGoAgenda() }
-                )
+            // Treino do dia
+            if (state.hasWorkout) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = accentColor.copy(alpha = 0.12f)
+                    ) {
+                        Icon(
+                            Icons.Filled.FitnessCenter,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(22.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            state.workoutName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "${state.totalExercisesToday} exercícios • sem pressa",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Icon(
+                            Icons.Filled.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(22.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            "Sem treino cadastrado",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            "Abra a Agenda e monte um treino simples.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        )
+                    }
+                }
+            }
 
-
-                Spacer(Modifier.height(10.dp))
-
+            // Ações
+            if (state.hasWorkout) {
+                Button(
+                    onClick = onGoTreino,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = accentColor,
+                        contentColor = if (state.missionDone)
+                            MaterialTheme.colorScheme.onSecondary
+                        else
+                            MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(
+                        Icons.Filled.FitnessCenter,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (state.missionDone) "Treinar novamente" else "Iniciar treino",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
                 OutlinedButton(
                     onClick = onGoAgenda,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                ) { Text("Abrir Agenda") }
-
-                Spacer(Modifier.height(6.dp))
-
-                TextButton(
-                    onClick = onGoProgresso,
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Ver detalhes do progresso") }
-                GlassActionCard(
-                    title = "Treinos prontos",
-                    subtitle = "Escolha um plano por objetivo e aplique na sua agenda.",
-                    badge = "NOVO",
-                    onClick = onGoPrograms,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        .heightIn(min = 46.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Abrir Agenda")
+                }
+            } else {
+                // Sem treino: um único CTA claro
+                Button(
+                    onClick = onGoAgenda,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.CalendarToday,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Criar treino na Agenda",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
 }
+
+// -------------------- XP Bar --------------------
+
 @Composable
-private fun GlassActionCard(
+private fun XpBar(
+    level: Int,
+    xpInLevel: Int,
+    progress: Float,
+    streakDays: Int,
+    missionDone: Boolean,
+    onGoProgresso: () -> Unit
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(900),
+        label = "xp_bar"
+    )
+
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.16f else 0.24f)
+    val ringFg = MaterialTheme.colorScheme.secondary
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 2.dp else 8.dp,
+        border = BorderStroke(1.dp, border),
+        onClick = onGoProgresso
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Mini anel de XP
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(40.dp)) {
+                        Canvas(modifier = Modifier.matchParentSize()) {
+                            val stroke = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                            val inset = 4.dp.toPx()
+                            val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
+                            val topLeft = Offset(inset, inset)
+                            drawArc(
+                                color = ringFg.copy(alpha = 0.18f),
+                                startAngle = -90f, sweepAngle = 360f,
+                                useCenter = false, topLeft = topLeft, size = arcSize, style = stroke
+                            )
+                            drawArc(
+                                color = ringFg,
+                                startAngle = -90f, sweepAngle = 360f * animatedProgress,
+                                useCenter = false, topLeft = topLeft, size = arcSize, style = stroke
+                            )
+                        }
+                        Text(
+                            "$level",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            "Nível $level",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "$xpInLevel / 500 XP",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                        )
+                    }
+                }
+
+                // Streak + missão compactos
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (streakDays > 0) {
+                        CompactChip(
+                            text = "${streakDays}d 🔥",
+                            active = streakDays >= 3
+                        )
+                    }
+                    CompactChip(
+                        text = if (missionDone) "Missão ✅" else "Missão ⏳",
+                        active = missionDone
+                    )
+                }
+            }
+
+            // Barra de XP
+            LinearProgressIndicator(
+                progress = animatedProgress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp),
+                color = ringFg,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+    }
+}
+
+// -------------------- Quick Nav Card --------------------
+
+@Composable
+private fun QuickNavCard(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    badge: String? = null
+    badge: String? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
-    val shape = RoundedCornerShape(20.dp)
     val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
-
-    val container = if (isLight) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.58f)
-    }
-
-    val border = if (isLight) {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
-    }
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.20f else 0.32f)
 
     Surface(
-        modifier = modifier
-            .clip(shape)
-            .clickable(onClick = onClick),
-        shape = shape,
-        color = container,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = if (isLight) 1.dp else 0.dp,
-        shadowElevation = if (isLight) 4.dp else 12.dp,
-        border = BorderStroke(1.dp, border)
+        shadowElevation = if (isLight) 2.dp else 8.dp,
+        border = BorderStroke(1.dp, border),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = MaterialTheme.typography.titleMedium)
-                    if (!badge.isNullOrBlank()) {
-                        Spacer(Modifier.width(8.dp))
-                        FtdBadge(text = badge)
-                    }
-                }
-                Spacer(Modifier.height(2.dp))
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(20.dp)
+                )
             }
-            Spacer(Modifier.width(10.dp))
-            Text("›", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    if (!badge.isNullOrBlank()) FtdBadge(text = badge)
+                }
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
+            }
+            Text(
+                "›",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+            )
         }
     }
 }
-// ---------- UI Helpers (Home) ----------
+
+// -------------------- New User Card --------------------
+
+@Composable
+private fun NewUserCard(onGoAgenda: () -> Unit, onGoPrograms: () -> Unit) {
+    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val border = MaterialTheme.colorScheme.outline.copy(alpha = if (isLight) 0.20f else 0.32f)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isLight) 1.dp else 0.dp,
+        shadowElevation = if (isLight) 6.dp else 14.dp,
+        border = BorderStroke(1.dp, border)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("👋", style = MaterialTheme.typography.displaySmall)
+            Text(
+                "Bem-vindo ao FitTodoDia",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Para começar, monte o treino de cada dia na Agenda — ou escolha um programa pronto.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                textAlign = TextAlign.Center
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onGoPrograms,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Escolher um programa pronto", fontWeight = FontWeight.SemiBold)
+                }
+                OutlinedButton(
+                    onClick = onGoAgenda,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Montar minha agenda")
+                }
+            }
+        }
+    }
+}
+
+// -------------------- Helpers --------------------
+
+@Composable
+private fun CompactChip(text: String, active: Boolean) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = if (active)
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+        else
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        border = BorderStroke(
+            1.dp,
+            if (active)
+                MaterialTheme.colorScheme.secondary.copy(alpha = 0.35f)
+            else
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.30f)
+        )
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (active)
+                MaterialTheme.colorScheme.secondary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
 private fun greetingMessage(): String {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -372,228 +740,15 @@ private fun greetingMessage(): String {
     }
 }
 
-@Composable
-private fun ProgressRing(
-    progress: Float,
-    levelText: String,
-    xpText: String,
-    modifier: Modifier = Modifier
-) {
-    val ringBg = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f)
-    val ringFg = MaterialTheme.colorScheme.secondary
-    val ringAccent = MaterialTheme.colorScheme.primary
-
-    Box(
-        modifier = modifier.size(220.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.matchParentSize()) {
-            val stroke = Stroke(width = 18.dp.toPx(), cap = StrokeCap.Round)
-
-            val inset = 18.dp.toPx()
-            val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
-            val topLeft = Offset(inset, inset)
-
-            drawArc(
-                color = ringBg,
-                startAngle = -90f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = stroke
-            )
-
-            drawArc(
-                color = ringFg,
-                startAngle = -90f,
-                sweepAngle = 360f * progress.coerceIn(0f, 1f),
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = stroke
-            )
-
-            // acento roxo sutil (dá vibe premium)
-            drawArc(
-                color = ringAccent.copy(alpha = 0.85f),
-                startAngle = -90f,
-                sweepAngle = 16f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = stroke
-            )
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(levelText, style = MaterialTheme.typography.headlineSmall)
-            Text(xpText, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-        }
+private fun todayShortLabel(): String {
+    val zone = ZoneId.of("America/Sao_Paulo")
+    return when (LocalDate.now(zone).dayOfWeek) {
+        DayOfWeek.MONDAY    -> "Seg"
+        DayOfWeek.TUESDAY   -> "Ter"
+        DayOfWeek.WEDNESDAY -> "Qua"
+        DayOfWeek.THURSDAY  -> "Qui"
+        DayOfWeek.FRIDAY    -> "Sex"
+        DayOfWeek.SATURDAY  -> "Sáb"
+        DayOfWeek.SUNDAY    -> "Dom"
     }
-}
-
-@Composable
-private fun GlassCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val shape = RoundedCornerShape(20.dp)
-    val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
-
-    val container = if (isLight) {
-        // ✅ sólido no claro
-        MaterialTheme.colorScheme.surface
-    } else {
-        // ✅ glass no escuro
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.58f)
-    }
-
-    val border = if (isLight) {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
-    }
-
-    Surface(
-        modifier = modifier,
-        shape = shape,
-        color = container,
-        tonalElevation = if (isLight) 1.dp else 0.dp,
-        shadowElevation = if (isLight) 6.dp else 14.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, border)
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            content = content
-        )
-    }
-}
-
-
-@Composable
-private fun PrimaryCtaButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    ) {
-        Text(text, style = MaterialTheme.typography.titleMedium)
-    }
-}
-
-@Composable
-private fun HomeChip(text: String) {
-    val shape = RoundedCornerShape(999.dp)
-    val bg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-    val border = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
-
-    Surface(
-        shape = shape,
-        color = bg,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, border)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-// ---------- Helpers (lógica) ----------
-
-private fun estimateXpSafe(exercises: Int, plannedSets: Int, doneSets: Int): Int {
-    val base = 90
-    val ex = 10 * max(0, exercises)
-    val planned = max(0, plannedSets)
-    val doneCapped = min(max(0, doneSets), planned)
-    val perSet = 2 * doneCapped
-    val completionBonus = if (planned > 0 && doneCapped == planned) 25 else 0
-    return base + ex + perSet + completionBonus
-}
-
-private fun xpToLevel(totalXp: Int): Pair<Int, Float> {
-    val xp = max(0, totalXp)
-    val perLevel = 500
-    val level = (xp / perLevel) + 1
-    val inLevel = xp % perLevel
-    val progress = inLevel.toFloat() / perLevel.toFloat()
-    return level to progress
-}
-
-private fun xpToNextLevel(totalXp: Int): Int {
-    val xp = max(0, totalXp)
-    val perLevel = 500
-    val inLevel = xp % perLevel
-    return perLevel - inLevel
-}
-
-private fun computeCurrentStreak(todayEpochDay: Long, daysDesc: List<Long>): Int {
-    if (daysDesc.isEmpty()) return 0
-    val set = daysDesc.toHashSet()
-    var start = todayEpochDay
-    if (!set.contains(start)) start = todayEpochDay - 1
-    if (!set.contains(start)) return 0
-    var streak = 0
-    var cur = start
-    while (set.contains(cur)) {
-        streak++
-        cur -= 1
-    }
-    return streak
-}
-
-private fun baseKeyForDayOfWeek(d: DayOfWeek): String = when (d) {
-    DayOfWeek.MONDAY -> "segunda"
-    DayOfWeek.TUESDAY -> "terca"
-    DayOfWeek.WEDNESDAY -> "quarta"
-    DayOfWeek.THURSDAY -> "quinta"
-    DayOfWeek.FRIDAY -> "sexta"
-    DayOfWeek.SATURDAY -> "sabado"
-    DayOfWeek.SUNDAY -> "domingo"
-}
-
-private fun labelForDayOfWeek(d: DayOfWeek): String = when (d) {
-    DayOfWeek.MONDAY -> "Segunda"
-    DayOfWeek.TUESDAY -> "Terça"
-    DayOfWeek.WEDNESDAY -> "Quarta"
-    DayOfWeek.THURSDAY -> "Quinta"
-    DayOfWeek.FRIDAY -> "Sexta"
-    DayOfWeek.SATURDAY -> "Sábado"
-    DayOfWeek.SUNDAY -> "Domingo"
-}
-
-private fun fallbackDayId(d: DayOfWeek): Int = when (d) {
-    DayOfWeek.MONDAY -> 1
-    DayOfWeek.TUESDAY -> 2
-    DayOfWeek.WEDNESDAY -> 3
-    DayOfWeek.THURSDAY -> 4
-    DayOfWeek.FRIDAY -> 5
-    DayOfWeek.SATURDAY -> 6
-    DayOfWeek.SUNDAY -> 7
-}
-
-private fun normalizeDayName(name: String): String {
-    val lower = name.trim().lowercase()
-    val noAccents = Normalizer.normalize(lower, Normalizer.Form.NFD)
-        .replace("\\p{Mn}+".toRegex(), "")
-    val noFeira = noAccents.replace("-feira", "").replace(" feira", "")
-    return noFeira.replace("\\s+".toRegex(), " ").trim()
 }
